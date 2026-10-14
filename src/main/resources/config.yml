@@ -1,0 +1,7 @@
+# 世界更名預設連動 zero 的已知世界欄位與 tokaPortal 2.0.0 住家。
+link-on-rename: true
+# 正式資料預設 SQLite；只更改格式不會自動遷移，必須完整停服使用離線 CLI。
+storage:
+  backend: sqlite
+# 必須是另一張已載入的世界；空白時使用預設世界。
+evacuation-world: ""

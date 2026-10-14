@@ -1,0 +1,15 @@
+name: tokaWorlds
+main: dev.toka.worlds.Main
+version: "1.0.1"
+api: ["1.0.4"]
+load: POSTWORLD
+softdepend: [zero, tokaPortal]
+commands:
+  worlds:
+    description: 世界掛載與批次更名管理
+    permission: tokaWorlds.use
+permissions:
+  tokaWorlds.use:
+    default: true
+  tokaWorlds.admin:
+    default: op
