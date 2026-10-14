@@ -38,7 +38,7 @@ final class Links {
         }
         Plugin portal=main.getServer().getPluginManager().getPlugin("tokaPortal");
         if(portal!=null) {
-            if(!portal.isEnabled() || !portal.getDescription().getVersion().equals("2.0.0")) throw new IllegalStateException("住家連動目前僅驗證 tokaPortal 2.0.0；可更新轉接器或明確關閉本次連動。");
+            if(!portal.isEnabled() || !Set.of("2.0.0","2.1.1").contains(portal.getDescription().getVersion())) throw new IllegalStateException("住家連動支援 tokaPortal 2.0.0／2.1.1；其他版本需驗證轉接器。");
             Object provider=portal.getClass().getMethod("getProvider").invoke(null);
             if(provider==null || !provider.getClass().getName().equals("dev.toka.pl.tokaPortal.provider.BaseDataProvider")) throw new IllegalStateException("不支援的住家資料提供者");
             ConfigSection document=(ConfigSection)field(provider,"document").get(provider);
