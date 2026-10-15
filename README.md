@@ -1,6 +1,6 @@
 # tokaWorlds
 
-獨立的 Nukkit 世界管理插件，版本 **1.0.2**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
+獨立的 Nukkit 世界管理插件，版本 **1.0.3**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
 
 ## 功能與狀態
 
@@ -55,7 +55,7 @@ worlds confirm 30
 
 ## 部署與還原紀錄
 
-放入 `plugins/tokaWorlds-1.0.2.jar`，一併更新 zero 1.7.7，完整重啟伺服器。zero 的原 SQL 保持不變；tokaWorlds 1.0.0 舊資料必須先離線匯入，不能直接換 JAR。權限 `tokaWorlds.admin` 預設給 OP；一般玩家僅能使用自己的 `return`。
+放入 `plugins/tokaWorlds-1.0.3.jar`，一併更新 zero 1.7.7，完整重啟伺服器。zero 的原 SQL 保持不變；tokaWorlds 1.0.0 舊資料必須先離線匯入，不能直接換 JAR。權限 `tokaWorlds.admin` 預設給 OP；一般玩家僅能使用自己的 `return`。
 
 正式儲存保存每項更名狀態、原始 `level.dat`、待辦、掛載狀態與玩家返回位置。`link-backups/` 仍是固定 JSON 的住家引用備份交換檔；zero 的引用備份在 `plugins/zero/world-rename-backups/`。**這些不是整張世界的壓縮備份**。
 
@@ -63,7 +63,7 @@ worlds confirm 30
 
 ## 編譯與測試
 
-需要 Java 21、Maven、同層 tokaStorage 0.1.1（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.0.2.jar`，不進版控。
+需要 Java 21、Maven、同層 tokaStorage 0.1.2（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.0.3.jar`，不進版控。
 
 `tests/smoke/run.py` 是獨立核心整合測試，參數 `--core`、`--zero`、`--one`、`--portal`、`--orm`（含 ORM JAR 的資料夾）、`--sqlite` 與 `--jdk`。測試資料及核心日誌放在 `.build-tools/`，只使用 SQLite 記憶體測試資料庫及無效 Discord Token，**不使用正式 MySQL 或 VPS**。測試需要 Python 3 與網路供核心取得啟動資訊；測試產物不可部署。
 
@@ -96,7 +96,7 @@ java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli inspect json /ser/world
 
 **回退限制：** tokaWorlds 1.0.0 不認得 1.0.2 的新儲存。回退 JAR 前，必須還原升級前的完整插件資料備份與對應世界／SQL 引用備份；不能拿較舊的 pending returns 或操作紀錄覆蓋已完成的新工作。本版沒有自動把新儲存反向輸出成 1.0.0 的工具。
 
-本版儲存與三格式轉換的正式環境／真實玩家驗證仍未完成。前面的 1.0.0 遊戲流程測試紀錄不是 1.0.2 全面驗證結果。SQLite JDBC 與依賴包含在單一插件 JAR，`org.sqlite` 不重定位，保留 JDBC services 與 native resource；SnakeYAML 重定位避免與核心版本混用。
+本版儲存與三格式轉換的正式環境／真實玩家驗證仍未完成。前面的 1.0.0 遊戲流程測試紀錄不是 1.0.2 全面驗證結果。SQLite JDBC 包含在單一插件 JAR 的 `META-INF/toka/sqlite-jdbc.jar`，以獨立 classloader 載入，避免與核心或其他插件的 SQLite 類別混用；保留完整 JNI 類別名稱與 native resource。SnakeYAML 重定位避免與核心版本混用。
 
 2026-10-04 的 1.0.2 本機驗收：三後端各通過完整世界操作測試，停服後讀回兩個成功與一個已還原工作紀錄；CLI 三格式舊資料匯入、九種互轉及目的地不覆寫通過；實際核心也確認未匯入舊資料或只改 backend 設定會停用管理，不建立空資料庫。測試使用 PM1E 4511、zero 1.7.7 及 tokaPortal 2.0.0 fixture；不是最新 tokaPortal 或正式 VPS 的相容性保證。重現測試位於同層 plugin-modernization/tests/world_storage_*.py。
 
@@ -104,3 +104,8 @@ java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli inspect json /ser/world
 ## 1.0.2 相依整合
 
 tokaStorage 升級為 0.1.1 並私有打包，避免 Profiles／Portal 共用 classloader 混用不同版本。住家 adapter 支援已驗證的 tokaPortal 2.0.0 與 2.1.1；三儲存後端與 zero 1.7.8／Portal 2.1.1 的完整更名、掛載與失敗還原測試通過。方塊稽核、備份還原、世界固定識別碼及 Profiles 接管仍在後續計畫，不在此版宣稱完成。
+
+## 1.0.3 SQLite 相容性修正
+
+修正核心或其他插件提供不同 SQLite JDBC 版本時，可能出現 SQLiteConnection.setLimit 的 NoSuchMethodError。沿用原儲存格式，不需要轉換資料；完整停服、備份插件資料後替換 JAR，移走舊版 JAR 再重啟，不使用 reload。DbLib 是否為衝突來源尚未確認，無需為此移除 DbLib。新增 tests/sqlite-isolation：以故意不相容的父層 driver 驗證 SQLite 寫入、關閉、重新開啟及讀回。此項測試不代表正式伺服器所有世界管理功能已重新驗收。
+

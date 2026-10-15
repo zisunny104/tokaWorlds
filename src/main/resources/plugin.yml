@@ -1,6 +1,6 @@
 name: tokaWorlds
 main: dev.toka.worlds.Main
-version: "1.0.2"
+version: "1.0.3"
 api: ["1.0.4"]
 load: POSTWORLD
 softdepend: [zero, tokaPortal]
@@ -13,3 +13,4 @@ permissions:
     default: true
   tokaWorlds.admin:
     default: op
+
