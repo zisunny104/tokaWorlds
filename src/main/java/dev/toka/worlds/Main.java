@@ -73,7 +73,7 @@ public final class Main extends PluginBase implements Listener {
             storageHealthy=true;
             if(loaded.isEmpty())saveState();
             if(recovery!=null) getLogger().error("有未完成的世界工作，停止修改。請檢查紀錄："+recovery);
-            getServer().getPluginManager().registerEvents(this,this);
+            getServer().getPluginManager().registerEvents(this,this);getServer().getPluginManager().registerEvents(new LegacyItems(this),this);
             getServer().getScheduler().scheduleDelayedTask(this,()-> {
                 if(recovery!=null)return;
                 for(String name:new ArrayList<>(mounts.keySet()))if(Boolean.TRUE.equals(mounts.get(name))) try {mount(name);}catch(Exception e){getLogger().warning("掛載失敗 "+name+"："+e.getMessage());}
