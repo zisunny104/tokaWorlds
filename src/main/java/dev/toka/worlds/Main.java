@@ -46,6 +46,7 @@ public final class Main extends PluginBase implements Listener {
         saveDefaultConfig();
         try {
             paths=new WorldPaths(Path.of(getServer().getDataPath(),"worlds"));
+            getLogger().info("載入世界共 "+paths.names().size()+" 個");
             Path data=getDataFolder().toPath();
             Backend backend=Backend.valueOf(getConfig().getString("storage.backend","sqlite").toUpperCase(Locale.ROOT));
             Path active=storagePath(data,backend);
