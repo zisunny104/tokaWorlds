@@ -41,11 +41,14 @@ final class LegacyItems implements Listener {
     LegacyItems(Main plugin) {
         this.plugin = plugin;
         this.logFile = plugin.getDataFolder().toPath().resolve("legacy-items.log");
-        ConfigSection section = plugin.getConfig().getSection("legacy-items");
-        for (String key : section.getKeys(false)) {
+        // YAML reads an unquoted 903 as a number, so the keys are not necessarily strings
+        Map<?, ?> configured = plugin.getConfig().getSection("legacy-items").getAllMap();
+        for (Map.Entry<?, ?> raw : configured.entrySet()) {
+            String key = String.valueOf(raw.getKey());
             try {
                 int id = Integer.parseInt(key.trim());
-                ConfigSection entry = section.getSection(key);
+                ConfigSection entry = raw.getValue() instanceof ConfigSection section
+                        ? section : new ConfigSection(castMap(raw.getValue()));
                 String to = entry.getString("to", "");
                 int per = Math.max(1, entry.getInt("per-item", 1));
                 this.rules.put(id, new Rule(to, per));
@@ -56,6 +59,11 @@ final class LegacyItems implements Listener {
         if (!this.rules.isEmpty()) {
             plugin.getLogger().info("舊編號物品轉換：" + this.rules.keySet());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castMap(Object value) {
+        return (Map<String, Object>) value;
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

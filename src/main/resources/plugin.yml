@@ -1,6 +1,6 @@
 name: tokaWorlds
 main: dev.toka.worlds.Main
-version: "1.0.5"
+version: "1.0.6"
 api: ["1.0.4"]
 load: POSTWORLD
 softdepend: [zero, tokaPortal]

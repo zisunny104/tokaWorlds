@@ -10,9 +10,9 @@ evacuation-world: ""
 # 玩家上線時，背包裡這些編號會換成 to 指定的物品，數量乘以 per-item；to 留空或寫 remove 代表直接移除。
 # 每次轉換都會記在 plugins/tokaWorlds/legacy-items.log，可以依紀錄手動還原。
 legacy-items:
-  903:                      # 原本是 petrified_oak_double_slab（石化橡木雙層半磚）
+  "903":                      # 原本是 petrified_oak_double_slab（石化橡木雙層半磚）
     to: "minecraft:petrified_oak_slab"
     per-item: 2
-  879:                      # 原本是 cobblestone_double_slab（圓石雙層半磚）
+  "879":                      # 原本是 cobblestone_double_slab（圓石雙層半磚）
     to: "minecraft:cobblestone_slab"
     per-item: 2
