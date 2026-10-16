@@ -57,7 +57,7 @@ final class LegacyItems implements Listener {
             }
         }
         if (!this.rules.isEmpty()) {
-            plugin.getLogger().info("載入舊編號物品轉換規則共 " + this.rules.size() + " 個（編號 " + this.rules.keySet() + "）");
+            plugin.getLogger().info("§b載入舊編號物品轉換規則共 §a" + this.rules.size() + " §b個（編號 §f" + this.rules.keySet() + "§b）");
         }
     }
 
