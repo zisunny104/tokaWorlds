@@ -1,5 +1,32 @@
-target/
-output/
-.build-tools/
+# Build output
+/target/
+/out/
+/output/
+*.class
+
+# Downloaded build tools and isolated test servers
+/.build-tools/
+
+# IntelliJ IDEA
 .idea/
 *.iml
+*.ipr
+*.iws
+
+# Logs, crash reports and temporary files
+logs/
+*.log
+hs_err_pid*
+replay_pid*
+*.tmp
+*.swp
+*~
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Local environment credentials
+.env
+.env.*
+!.env.example
