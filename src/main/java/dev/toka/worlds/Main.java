@@ -296,7 +296,22 @@ public final class Main extends PluginBase implements Listener {
                 case "clear" -> {mutable();plan(sender).clear();remember(sender);sender.sendMessage("待辦已清空");}
                 case "check" -> {mutable();validate(plan(sender));checked.add(owner(sender));sender.sendMessage(describe(plan(sender))+"\n檢查通過；/worlds confirm [延遲秒數]");}
                 case "confirm" -> {if(args.length>2)throw new IllegalArgumentException("用法：/worlds confirm [延遲秒數]");execute(sender,args.length==2?Integer.parseInt(args[1]):0);}
-                default -> sender.sendMessage("/worlds list | mount A | unmount A | rename A B [--link|--no-link] | plan | check | confirm [秒] | clear | cancel\n遊戲內輸入 /worlds 可開啟管理視窗。");
+                case "resend" -> {
+                    if(!(sender instanceof Player self))throw new IllegalArgumentException("只能在遊戲內使用");
+                    int radius=args.length>=2?Math.max(1,Math.min(48,Integer.parseInt(args[1]))):16;
+                    var level=self.getLevel();var list=new ArrayList<cn.nukkit.math.Vector3>();
+                    int cx=self.getFloorX(),cy=self.getFloorY(),cz=self.getFloorZ();
+                    for(int x=cx-radius;x<=cx+radius;x++)for(int z=cz-radius;z<=cz+radius;z++){
+                        if(level.getChunkIfLoaded(x>>4,z>>4)==null)continue;
+                        for(int y=Math.max(-64,cy-radius);y<=Math.min(319,cy+radius);y++){
+                            var block=level.getBlock(x,y,z);
+                            if(block instanceof cn.nukkit.block.BlockStairs||block instanceof cn.nukkit.block.ConnectionBlock||block instanceof cn.nukkit.block.BlockWall||block instanceof cn.nukkit.block.BlockDoor||block instanceof cn.nukkit.block.BlockFenceGate)list.add(new cn.nukkit.math.Vector3(x,y,z));
+                        }
+                    }
+                    level.sendBlocks(new Player[]{self},list.toArray(new cn.nukkit.math.Vector3[0]),cn.nukkit.network.protocol.UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                    sender.sendMessage("已重新送出周圍 "+radius+" 格內的樓梯、柵欄、玻璃片、牆、門與柵欄門，共 "+list.size()+" 個方塊，只影響你自己的畫面");
+                }
+                default -> sender.sendMessage("/worlds list | mount A | unmount A | rename A B [--link|--no-link] | plan | check | confirm [秒] | clear | cancel | resend [半徑]\n遊戲內輸入 /worlds 可開啟管理視窗。");
             }
         } catch(Exception error) {sender.sendMessage("§e"+error.getMessage());}
         return true;
