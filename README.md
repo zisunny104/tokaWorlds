@@ -1,6 +1,6 @@
 # tokaWorlds
 
-整體拆分現況只維護於 [拆分主文件](https://github.com/zisunny104/tokaProfiles/blob/main/docs/ARCHITECTURE.md)；本 README 維護本專案的設定、API 與使用限制。
+整體拆分現況只維護於 [拆分主文件](https://github.com/zisunny104/zero/blob/master/docs/ARCHITECTURE.md)；本 README 維護本專案的設定、API 與使用限制。
 
 獨立的 Nukkit 世界管理插件，版本 **1.0.5**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
 
@@ -110,6 +110,7 @@ tokaStorage 升級為 0.1.1 並私有打包，避免 Profiles／Portal 共用 cl
 ## 1.0.3 SQLite 相容性修正
 
 修正核心或其他插件提供不同 SQLite JDBC 版本時，可能出現 SQLiteConnection.setLimit 的 NoSuchMethodError。沿用原儲存格式，不需要轉換資料；完整停服、備份插件資料後替換 JAR，移走舊版 JAR 再重啟，不使用 reload。DbLib 是否為衝突來源尚未確認，無需為此移除 DbLib。新增 tests/sqlite-isolation：以故意不相容的父層 driver 驗證 SQLite 寫入、關閉、重新開啟及讀回。此項測試不代表正式伺服器所有世界管理功能已重新驗收。
+
 
 
 
