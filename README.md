@@ -1,6 +1,8 @@
 # tokaWorlds
 
-獨立的 Nukkit 世界管理插件，版本 **1.0.3**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
+整體拆分現況只維護於 [拆分主文件](https://github.com/zisunny104/tokaProfiles/blob/main/docs/ARCHITECTURE.md)；本 README 維護本專案的設定、API 與使用限制。
+
+獨立的 Nukkit 世界管理插件，版本 **1.0.5**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
 
 ## 功能與狀態
 
@@ -55,7 +57,7 @@ worlds confirm 30
 
 ## 部署與還原紀錄
 
-放入 `plugins/tokaWorlds-1.0.3.jar`，一併更新 zero 1.7.7，完整重啟伺服器。zero 的原 SQL 保持不變；tokaWorlds 1.0.0 舊資料必須先離線匯入，不能直接換 JAR。權限 `tokaWorlds.admin` 預設給 OP；一般玩家僅能使用自己的 `return`。
+放入 `plugins/tokaWorlds-1.0.5.jar`，一併更新 zero 1.7.7，完整重啟伺服器。zero 的原 SQL 保持不變；tokaWorlds 1.0.0 舊資料必須先離線匯入，不能直接換 JAR。權限 `tokaWorlds.admin` 預設給 OP；一般玩家僅能使用自己的 `return`。
 
 正式儲存保存每項更名狀態、原始 `level.dat`、待辦、掛載狀態與玩家返回位置。`link-backups/` 仍是固定 JSON 的住家引用備份交換檔；zero 的引用備份在 `plugins/zero/world-rename-backups/`。**這些不是整張世界的壓縮備份**。
 
@@ -63,7 +65,7 @@ worlds confirm 30
 
 ## 編譯與測試
 
-需要 Java 21、Maven、同層 tokaStorage 0.1.2（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.0.3.jar`，不進版控。
+需要 Java 21、Maven、同層 tokaStorage 0.1.2（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.0.5.jar`，不進版控。
 
 `tests/smoke/run.py` 是獨立核心整合測試，參數 `--core`、`--zero`、`--one`、`--portal`、`--orm`（含 ORM JAR 的資料夾）、`--sqlite` 與 `--jdk`。測試資料及核心日誌放在 `.build-tools/`，只使用 SQLite 記憶體測試資料庫及無效 Discord Token，**不使用正式 MySQL 或 VPS**。測試需要 Python 3 與網路供核心取得啟動資訊；測試產物不可部署。
 
@@ -108,4 +110,6 @@ tokaStorage 升級為 0.1.1 並私有打包，避免 Profiles／Portal 共用 cl
 ## 1.0.3 SQLite 相容性修正
 
 修正核心或其他插件提供不同 SQLite JDBC 版本時，可能出現 SQLiteConnection.setLimit 的 NoSuchMethodError。沿用原儲存格式，不需要轉換資料；完整停服、備份插件資料後替換 JAR，移走舊版 JAR 再重啟，不使用 reload。DbLib 是否為衝突來源尚未確認，無需為此移除 DbLib。新增 tests/sqlite-isolation：以故意不相容的父層 driver 驗證 SQLite 寫入、關閉、重新開啟及讀回。此項測試不代表正式伺服器所有世界管理功能已重新驗收。
+
+
 
