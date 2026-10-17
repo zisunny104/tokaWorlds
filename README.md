@@ -63,6 +63,10 @@ worlds confirm 30
 
 若程序在更名中途終止，重啟後會偵測未完成紀錄並停止新的世界修改。此版不自動推測最後成功步驟，也沒有自動處理中斷工作的指令；請保留紀錄，停服後核對資料夾與引用備份，再人工處理。還原失敗也會保留紀錄並停止操作，避免繼續改動。
 
+## 多語系
+
+所有玩家訊息、表單、指令說明與後台文字都在 `src/main/resources/lang/zh-TW.yml`，由內嵌的 [tokaI18n](https://github.com/zisunny104/tokaI18n) 讀取；`config.yml` 的 `language` 決定語言（目前只有 `zh-TW`）。伺服器擁有者可把同名檔放進 `plugins/tokaWorlds/lang/` 覆蓋個別文字。`/worlds help` 顯示全部子指令說明。key 分區、顏色對照與待確認事項見 [docs/I18N.md](docs/I18N.md)。
+
 ## 編譯與測試
 
 需要 Java 21、Maven、同層 tokaStorage 0.1.2（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.0.5.jar`，不進版控。

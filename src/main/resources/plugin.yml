@@ -1,12 +1,13 @@
 name: tokaWorlds
 main: dev.toka.worlds.Main
-version: "1.0.9"
+version: "1.1.0"
 api: ["1.0.4"]
 load: POSTWORLD
 softdepend: [zero, tokaPortal]
 commands:
   worlds:
     description: 世界掛載與批次更名管理
+    usage: "/worlds help 查看說明"
     permission: tokaWorlds.use
 permissions:
   tokaWorlds.use:

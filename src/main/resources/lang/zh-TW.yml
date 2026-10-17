@@ -1,0 +1,264 @@
+# tokaWorlds 繁體中文語系檔（zh-TW）
+# 所有使用者看得到的文字都在這裡；程式內不寫中文。檔案必須是 UTF-8。
+# 參數用 ${0}、${1} 表示（依序由 0 開始），每個 key 上方的註解會說明各參數的意義與順序。
+# 顏色慣例：一般文字 §b、數字／名稱／值 §a、警告 §e、成功 §a、錯誤 §c、次要說明 §7、標題 §6。
+# 後台 log 不加方括號標籤，行首直接寫文字。
+# 伺服器擁有者可以把同名檔放進 plugins/tokaWorlds/lang/ 覆蓋個別文字。
+
+# ---------------------------------------------------------------------------
+# cmd.<指令>.desc / cmd.<指令>.usage：指令說明與用法
+# ---------------------------------------------------------------------------
+cmd:
+  worlds:
+    # /worlds 的說明（與 plugin.yml 的 description 對應）
+    desc: "世界掛載與批次更名管理"
+    # 用法，未知子指令時顯示；無參數
+    usage:
+      - "§e/worlds list §7| §e/worlds mount §aA §7| §e/worlds unmount §aA §7| §e/worlds rename §aA B §7[--link|--no-link]"
+      - "§7| §e/worlds plan §7| §e/worlds check §7| §e/worlds confirm §7[秒] | §e/worlds clear §7| §e/worlds cancel §7| §e/worlds resend §7[半徑]"
+      - "§7輸入 §e/worlds help §7查看完整說明；遊戲內輸入 §e/worlds §7可開啟管理視窗。"
+
+# ---------------------------------------------------------------------------
+# help.<指令>：/指令 help 的多行說明（第一行標題）
+# ---------------------------------------------------------------------------
+help:
+  worlds:
+    - "§6§l世界管理 說明"
+    - "§e/worlds §7- §b遊戲內開啟管理視窗（主控台顯示本說明）"
+    - "§e/worlds list §7- §b列出世界與掛載狀態、線上玩家數"
+    - "§e/worlds mount <世界> §7- §b把世界加入待辦：掛載"
+    - "§e/worlds unmount <世界> §7- §b把世界加入待辦：卸載（不刪除地圖）"
+    - "§e/worlds rename <A> <B> [--link|--no-link] §7- §b把世界更名加入待辦；--link 連動 zero／tokaPortal，--no-link 只改地圖"
+    - "§e/worlds plan §7- §b查看自己的待辦列表"
+    - "§e/worlds check §7- §b檢查全部待辦（排程前必須先檢查）"
+    - "§e/worlds confirm [延遲秒數] §7- §b排程執行，延遲 0～3600 秒，預設 0"
+    - "§e/worlds clear §7- §b清空自己的待辦"
+    - "§e/worlds cancel §7- §b工作開始前取消排程，待辦保留"
+    - "§e/worlds resend [半徑] §7- §b把周圍的樓梯、柵欄、玻璃片、牆、門與柵欄門重新送給自己（半徑 1～48，預設 16；只影響自己的畫面）"
+    - "§e/worlds return §7- §b維護後尚未返回時，手動回到原位置（玩家可用）"
+    - "§e/worlds help §7- §b顯示本說明"
+
+# ---------------------------------------------------------------------------
+# msg.<區>.<名>：玩家（或指令執行者）看到的訊息
+# ---------------------------------------------------------------------------
+msg:
+  plan:
+    # 待辦列表的一般項目（掛載／卸載）。${0}=序號 ${1}=操作名稱（見 status.op.*）${2}=世界名稱 ${3}=線上玩家數
+    item: "§a${0}§b. §a${1} ${2}§b；線上玩家 §a${3}"
+    # 待辦列表的更名項目。${0}=序號 ${1}=操作名稱 ${2}=來源世界 ${3}=新名稱 ${4}=連動標記（status.link.*）${5}=線上玩家數
+    rename: "§a${0}§b. §a${1} ${2}§b → §a${3}§b ${4}§b；線上玩家 §a${5}"
+    # 待辦列表結尾說明（多行；無參數）
+    footer:
+      - "§b玩家會先移到其他世界並暫停操作，完成更名後返回原座標；每項完成即生效。失敗時停止剩餘項目，已完成項目保留。"
+      - "§b連動範圍：zero 已知世界欄位、tokaPortal 2.0.0 住家；不改其他插件與離線玩家檔案。"
+      - "§b目的資料夾存在時不覆蓋。這不是完整地圖備份。"
+  # 已加入待辦；無參數
+  added: "§a已加入待辦§b；§e/worlds check §b→ §e/worlds confirm"
+  # 待辦已清空；無參數
+  cleared: "§a待辦已清空"
+  # 檢查通過；無參數
+  checkPass: "§a檢查通過§b；§e/worlds confirm [延遲秒數]"
+  # 排程已取消；無參數
+  cancelled: "§a排程已取消，待辦保留。"
+  # 已排程。${0}=項目數 ${1}=延遲秒數
+  scheduled: "§b已排程 §a${0} §b項，§a${1} §b秒後執行。"
+  # 全部完成；無參數
+  allDone: "§a世界工作全部完成。"
+  # 工作中途停止。${0}=錯誤原因
+  stopped: "§c工作停止：${0}"
+  list:
+    # 未掛載的世界。${0}=世界名稱
+    unmounted: "§a${0}§b：未掛載"
+    # 掛載中的世界。${0}=世界名稱 ${1}=線上玩家數
+    mounted: "§a${0}§b：掛載中，玩家 §a${1}"
+  # 周圍方塊已重新送出。${0}=半徑 ${1}=方塊數
+  resend: "§a已重新送出周圍 §b${0} §a格內的樓梯、柵欄、玻璃片、牆、門與柵欄門，共 §b${1} §a個方塊，只影響你自己的畫面"
+  maintenance:
+    # 維護開始，玩家被移出並凍結；無參數
+    start: "§e世界維護開始，暫停移動與互動；完成後會自動返回。"
+    # 維護期間輸入指令被擋；無參數
+    busy: "§e世界維護中，請稍候。"
+  return:
+    # 原世界尚未恢復；無參數
+    notRestored: "§e原世界尚未恢復，返回紀錄已保留；掛載後可使用 §a/worlds return§e。"
+    # 已返回；無參數
+    done: "§a世界維護完成，已返回原位置。"
+    # 返回傳送被拒絕；無參數
+    rejected: "§e返回傳送被拒絕，紀錄已保留；可稍後使用 §a/worlds return§e。"
+  legacy:
+    # 玩家上線時背包的舊編號物品已被換成現在的物品；無參數
+    converted: "§e你背包裡有舊版留下的物品，已換成現在的版本，請查看背包。"
+
+# ---------------------------------------------------------------------------
+# err.<名>：錯誤／拒絕。這些文字會被包進 err.show 顯示給玩家，所以本身不加顏色
+# ---------------------------------------------------------------------------
+err:
+  # 把錯誤原因顯示給玩家或指令執行者。${0}=錯誤原因
+  show: "§c${0}"
+  # 一般錯誤
+  legacyDataFound: "偵測到舊資料，請停服執行 StorageCli import-legacy；不會自動匯入。"
+  otherFormat: "其他儲存格式已有資料，請先離線 migrate，不能只更改設定。"
+  legacyNotImported: "新儲存未含舊資料，請先離線匯入。"
+  otherFormatEmpty: "其他格式已有資料但目前格式為空，停止初始化；請離線遷移。"
+  storageNotReady: "儲存未就緒，停止世界管理"
+  busy: "已有世界工作排程／執行中"
+  # ${0}=未完成的工作代號
+  recoveryFirst: "未完成工作需先人工檢查：${0}"
+  storageFailed: "儲存已失效，停止世界修改"
+  storageNotReadyMount: "儲存未就緒，停止掛載"
+  storageNotReadyUnmount: "儲存未就緒，停止卸載"
+  # ${0}=世界名稱
+  coreMountFailed: "核心未能掛載：${0}"
+  needOtherWorld: "需要另一張已載入世界供玩家移出"
+  defaultWorldNoUnmount: "預設世界不能卸載／更名；請先在 server.properties 換預設世界並重啟。"
+  # ${0}=玩家名稱
+  playerCannotMove: "玩家無法移出：${0}"
+  worldStillHasPlayers: "世界仍有玩家，停止工作"
+  # ${0}=世界名稱
+  worldSaveFailed: "世界儲存失敗：${0}"
+  # ${0}=世界名稱
+  unloadRefused: "卸載被核心或其他插件拒絕：${0}"
+  planEmpty: "待辦列表是空的"
+  # ${0}=世界名稱
+  duplicateWorld: "同一世界不可重複排入列表：${0}"
+  unknownOp: "未知操作"
+  # ${0}=世界名稱
+  defaultWorldNamed: "預設世界不能卸載／更名：${0}"
+  # ${0}=新名稱
+  targetDuplicate: "目標名稱重複或串接更名：${0}"
+  evacuationConflict: "移出玩家用的世界不能同時排入卸載／更名"
+  renameLoadFailed: "更名後世界無法載入"
+  alreadyStarted: "工作已開始，無法中途取消"
+  notChecked: "請先執行 /worlds check 檢查全部項目"
+  delayRange: "延遲秒數範圍為 0～3600"
+  permissionRemoved: "執行權限已移除"
+  # ${0}=玩家名稱
+  returnPending: "玩家還有未完成的返回紀錄：${0}"
+  # ${0}=玩家名稱
+  playerNotMoved: "玩家未能移出：${0}"
+  noWorlds: "沒有可管理的世界"
+  playerOnly: "只能在遊戲內使用"
+  unknownLink: "未知連動選項"
+  usage:
+    # ${0}=子指令（mount 或 unmount）
+    mount: "用法：/worlds ${0} 世界名稱"
+    rename: "用法：/worlds rename A B [--link|--no-link]"
+    confirm: "用法：/worlds confirm [延遲秒數]"
+  # 世界資料夾與名稱檢查
+  worldName: "世界名稱只能包含文字、數字、底線與連字號（1～64 字）。"
+  pathUnsafe: "世界路徑不安全"
+  # ${0}=世界名稱
+  worldNotFound: "找不到完整世界：${0}"
+  symlink: "不接受世界資料的符號連結"
+  # ${0}=世界名稱
+  targetExists: "目的世界已存在，未覆蓋：${0}"
+  # ${0}=世界名稱
+  caseConflict: "目的名稱大小寫衝突：${0}"
+  # 連動其他插件
+  zeroDisabled: "zero 未啟用，無法驗證連動"
+  portalVersion: "住家連動支援 tokaPortal 2.0.0／2.1.1／2.1.2；其他版本需驗證轉接器。"
+  portalProvider: "不支援的住家資料提供者"
+  homeSaveFailed: "住家儲存失敗"
+  homesChanged: "住家資料已變更，停止更名"
+  homesModified: "住家資料被其他工作修改，需人工還原"
+
+# ---------------------------------------------------------------------------
+# ui.<表單>.<名>：表單標題、按鈕、欄位（表單內不加顏色）
+# ---------------------------------------------------------------------------
+ui:
+  menu:
+    title: "世界管理"
+    rename: "新增世界更名"
+    mount: "新增掛載／卸載"
+    check: "檢查全部並排程"
+    clear: "清空待辦"
+    list: "列出世界"
+  add:
+    world: "選擇世界 A"
+    newName: "新名稱 B"
+    link: "連動 zero／tokaPortal 世界引用"
+    action: "操作"
+    mount: "掛載"
+    unmount: "卸載"
+  confirm:
+    title: "排程確認"
+    delay: "延遲秒數（0～3600）"
+    placeholder: "例如 30"
+    toggle: "確認上述全部項目並執行"
+
+# ---------------------------------------------------------------------------
+# log.<名>：後台文字（不加方括號標籤；文字 §b、數字 §a、警告 §e、錯誤 §c）
+# ---------------------------------------------------------------------------
+log:
+  # ${0}=世界數
+  loadedWorlds: "§b載入世界共 §a${0} §b個"
+  # ${0}=未完成的工作代號
+  recoveryPending: "§c有未完成的世界工作，停止修改。請檢查紀錄：§a${0}"
+  # ${0}=世界名稱 ${1}=失敗原因
+  mountFailed: "§e掛載失敗 §a${0}§e：${1}"
+  unmountFailed: "§e卸載失敗 §a${0}§e：${1}"
+  initFailed: "§c世界管理初始化失敗"
+  journalLost: "§c工作紀錄無法保存，停止自動還原；請停服核對世界與引用備份。"
+  # ${0}=未完成的工作代號
+  rollbackFailed: "§c自動還原未完成，停止所有世界修改：§a${0}"
+  jobFailed: "§c世界工作失敗"
+  returnSaveFailed: "§c返回紀錄儲存失敗"
+  closeFailed: "§c關閉儲存失敗"
+  legacy:
+    # ${0}=規則數 ${1}=舊編號清單
+    rulesLoaded: "§b載入舊編號物品轉換規則共 §a${0} §b個（編號 §a${1}§b）"
+    # ${0}=設定的編號 ${1}=失敗原因
+    ruleUnreadable: "§elegacy-items 的 §a${0} §e設定無法讀取，已略過：${1}"
+    # ${0}=玩家名稱 ${1}=失敗原因
+    convertFailed: "§e轉換 §a${0} §e的舊編號物品失敗：${1}"
+    # ${0}=目標物品 ${1}=舊編號
+    itemNotFound: "§elegacy-items：找不到物品 §a${0}§e，沒有轉換 §a${1}"
+    # ${0}=玩家名稱 ${1}=轉換紀錄
+    item: "§b舊編號物品 §a${0}§b：${1}"
+    # ${0}=檔案失敗原因
+    fileWriteFailed: "§e無法寫入 legacy-items.log：${0}"
+    # 寫進 legacy-items.log 的紀錄（純文字，不加顏色）。${0}=物品名稱 ${1}=數量
+    dropped: "背包已滿，掉落 ${0} x${1}"
+
+# ---------------------------------------------------------------------------
+# status.<名>：狀態字
+# ---------------------------------------------------------------------------
+status:
+  op:
+    mount: "掛載"
+    unmount: "卸載"
+    rename: "更名"
+  link:
+    "on": "［連動開啟］"
+    "off": "［不連動］"
+    # 更名連動的說明，會寫進操作紀錄。${0}=筆數
+    zero: "zero：${0} 筆區域／領地／傳送點／告示牌／方塊紀錄"
+    # ${0}=住家數
+    portal: "tokaPortal：${0} 個住家"
+  # 舊編號物品被移除（寫進 legacy-items.log，純文字）
+  legacyRemoved: "移除"
+
+# ---------------------------------------------------------------------------
+# cli.<名>：離線工具 StorageCli 的輸出（純文字，不加色碼；PASS 標記行維持英文代碼）
+# ---------------------------------------------------------------------------
+cli:
+  usage: "先完整停服。import-legacy <舊插件資料夾> <sqlite|json|yaml> <新儲存資料夾> <備份資料夾>；migrate <來源格式> <來源儲存資料夾> <目標格式> <新儲存資料夾> <備份資料夾>；inspect <格式> <儲存資料夾>"
+  importArgs: "import-legacy 需要來源、格式、新目的地與備份資料夾"
+  sourceNotPlain: "來源必須是一般插件資料夾"
+  targetInside: "目的地必須在來源資料夾外，驗證後才人工移入 storage"
+  backupInside: "備份必須在來源與目的地外"
+  backupVerify: "來源備份驗證失敗"
+  importVerify: "匯入讀回驗證失敗"
+  sourceChanged: "來源資料在匯入期間改變，停止啟用目的地"
+  migrateArgs: "migrate 需要來源格式／路徑、目標格式／新路徑、備份資料夾"
+  inspectArgs: "inspect 需要格式與路徑"
+  unknown: "未知離線指令"
+  # ${0}=檔案路徑
+  noStoreFile: "來源儲存檔案不存在或為連結：${0}"
+  noConfig: "缺少一般 config.yml 來源"
+  badConfig: "無效 config.yml"
+  # ${0}=設定 key
+  badList: "無效設定列表：${0}"
+  refuseSource: "拒絕來源連結"
+  # ${0}=檔案路徑
+  refuseFile: "拒絕非一般來源檔案：${0}"

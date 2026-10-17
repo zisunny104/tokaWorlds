@@ -35,6 +35,10 @@ final class LegacyItems implements Listener {
     }
 
     private final Main plugin;
+
+    private String t(String key, Object... arguments) {
+        return this.plugin.messages().text(key, arguments);
+    }
     private final Map<Integer, Rule> rules = new HashMap<>();
     private final Path logFile;
 
@@ -53,11 +57,11 @@ final class LegacyItems implements Listener {
                 int per = Math.max(1, entry.getInt("per-item", 1));
                 this.rules.put(id, new Rule(to, per));
             } catch (RuntimeException error) {
-                plugin.getLogger().warning("legacy-items 的 " + key + " 設定無法讀取，已略過：" + error.getMessage());
+                plugin.getLogger().warning(plugin.messages().text("log.legacy.ruleUnreadable", key, error.getMessage()));
             }
         }
         if (!this.rules.isEmpty()) {
-            plugin.getLogger().info("§b載入舊編號物品轉換規則共 §a" + this.rules.size() + " §b個（編號 §f" + this.rules.keySet() + "§b）");
+            plugin.getLogger().info(plugin.messages().text("log.legacy.rulesLoaded", this.rules.size(), this.rules.keySet()));
         }
     }
 
@@ -75,7 +79,7 @@ final class LegacyItems implements Listener {
         try {
             this.convert(player);
         } catch (RuntimeException error) {
-            this.plugin.getLogger().warning("轉換 " + player.getName() + " 的舊編號物品失敗：" + error);
+            this.plugin.getLogger().warning(this.t("log.legacy.convertFailed", player.getName(), error));
         }
     }
 
@@ -91,12 +95,12 @@ final class LegacyItems implements Listener {
             int total = old.getCount() * rule.perItem();
             if (rule.remove()) {
                 player.getInventory().clear(slot.getKey(), false);
-                notes.add("slot " + slot.getKey() + " id=" + old.getId() + " damage=" + old.getDamage() + " count=" + old.getCount() + " -> 移除");
+                notes.add("slot " + slot.getKey() + " id=" + old.getId() + " damage=" + old.getDamage() + " count=" + old.getCount() + " -> " + this.t("status.legacyRemoved"));
                 continue;
             }
             Item current = resolve(rule.to());
             if (current == null || current.getId() == 0) {
-                this.plugin.getLogger().warning("legacy-items：找不到物品 " + rule.to() + "，沒有轉換 " + old.getId());
+                this.plugin.getLogger().warning(this.t("log.legacy.itemNotFound", rule.to(), old.getId()));
                 continue;
             }
             int stack = Math.min(total, Math.max(1, current.getMaxStackSize()));
@@ -119,11 +123,11 @@ final class LegacyItems implements Listener {
         }
         for (Item leftover : player.getInventory().addItem(extra.toArray(new Item[0]))) {
             player.getLevel().dropItem(player, leftover);
-            notes.add("背包已滿，掉落 " + leftover.getName() + " x" + leftover.getCount());
+            notes.add(this.t("log.legacy.dropped", leftover.getName(), leftover.getCount()));
         }
         player.getInventory().sendContents(player);
         this.record(player, notes);
-        player.sendMessage("§e你背包裡有舊版留下的物品，已換成現在的版本，請查看背包。");
+        player.sendMessage(this.t("msg.legacy.converted"));
     }
 
     /** The item for an identifier such as minecraft:cobblestone_slab, looked up in the core's own item table. */
@@ -139,14 +143,14 @@ final class LegacyItems implements Listener {
     private void record(Player player, List<String> notes) {
         StringBuilder text = new StringBuilder();
         for (String note : notes) {
-            this.plugin.getLogger().info("舊編號物品 " + player.getName() + "：" + note);
+            this.plugin.getLogger().info(this.t("log.legacy.item", player.getName(), note));
             text.append(Instant.now()).append(' ').append(player.getUniqueId()).append(' ').append(player.getName()).append(' ').append(note).append('\n');
         }
         try {
             Files.createDirectories(this.logFile.getParent());
             Files.writeString(this.logFile, text.toString(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException error) {
-            this.plugin.getLogger().warning("無法寫入 legacy-items.log：" + error.getMessage());
+            this.plugin.getLogger().warning(this.t("log.legacy.fileWriteFailed", error.getMessage()));
         }
     }
 }

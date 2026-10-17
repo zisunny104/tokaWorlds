@@ -1,14 +1,34 @@
-# 世界更名預設連動 zero 的已知世界欄位與 tokaPortal 2.0.0 住家。
+# tokaWorlds 設定檔。修改後需重啟伺服器才會生效。
+
+# 插件使用的語言，對應 jar 內 lang/ 資料夾的語系檔。目前只有繁體中文：zh-TW。
+# 想修改個別文字，可把同名檔放進 plugins/tokaWorlds/lang/（例如 zh-TW.yml），沒寫到的文字仍使用內建的。
+language: zh-TW
+
+# 世界更名時是否預設連動其他插件的世界資料（zero 的已知世界欄位、tokaPortal 2.0.0 以上的住家）。
+# 可填 true（連動，預設）或 false（只改地圖資料夾）。
+# 單次更名也可以用 /worlds rename A B --link 或 --no-link 個別指定。
 link-on-rename: true
-# 正式資料預設 SQLite；只更改格式不會自動遷移，必須完整停服使用離線 CLI。
+
+# 世界管理資料的儲存方式。
 storage:
+  # 可填 sqlite（預設，正式資料建議使用）、json、yaml。
+  # 只更改這裡不會自動遷移資料，必須先完整停服，使用離線工具 StorageCli 的 migrate 遷移。
   backend: sqlite
-# 必須是另一張已載入的世界；空白時使用預設世界。
+
+# 卸載或更名世界時，世界內玩家要被移到哪一張世界。
+# 填另一張已載入的世界名稱；空白（預設）代表使用伺服器預設世界。
+# 這張世界不能同時被排入卸載或更名。
 evacuation-world: ""
 
-# 舊核心留下、現在的核心已不認得的物品編號（日誌會出現 Unknown legacy2Runtime mapping）。
-# 玩家上線時，背包裡這些編號會換成 to 指定的物品，數量乘以 per-item；to 留空或寫 remove 代表直接移除。
+# 舊核心留下、現在的核心已不認得的物品編號（後台日誌會出現 Unknown legacy2Runtime mapping）。
+# 玩家上線時，背包裡這些編號的物品會換成 to 指定的物品。
+# 格式：編號（數字）底下填兩個欄位：
+#   to       要換成的物品識別碼，例如 minecraft:cobblestone_slab（省略 minecraft: 也可以）；
+#            留空或寫 remove 代表直接移除該物品。
+#   per-item 每 1 個舊物品換成幾個新物品（整數，最小 1，預設 1）；
+#            超過一組堆疊上限時，多出的會放進背包，背包滿了就掉在地上。
 # 每次轉換都會記在 plugins/tokaWorlds/legacy-items.log，可以依紀錄手動還原。
+# 不需要轉換時可整段留空（legacy-items: {}）。
 legacy-items:
   "903":                      # 原本是 petrified_oak_double_slab（石化橡木雙層半磚）
     to: "minecraft:petrified_oak_slab"
