@@ -175,6 +175,7 @@ ui:
     check: "檢查全部並排程"
     clear: "清空待辦"
     list: "列出世界"
+    close: "關閉"
   add:
     world: "選擇世界 A"
     newName: "新名稱 B"

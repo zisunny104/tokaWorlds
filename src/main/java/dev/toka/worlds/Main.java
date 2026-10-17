@@ -340,7 +340,7 @@ public final class Main extends PluginBase implements Listener {
     }
     private void showMenu(Player player) throws Exception {
         FormWindowSimple form=new FormWindowSimple(t("ui.menu.title"),describe(plan(player)));
-        for(String button:List.of(t("ui.menu.rename"),t("ui.menu.mount"),t("ui.menu.check"),t("ui.menu.clear"),t("ui.menu.list")))form.addButton(new ElementButton(button));
+        for(String button:List.of(t("ui.menu.rename"),t("ui.menu.mount"),t("ui.menu.check"),t("ui.menu.clear"),t("ui.menu.list"),t("ui.menu.close")))form.addButton(new ElementButton(button));
         dialogs.put(player.getUniqueId(),new Dialog(player.showFormWindow(form),"menu",List.of()));
     }
     private void showAdd(Player player,boolean rename) throws Exception {
@@ -354,7 +354,8 @@ public final class Main extends PluginBase implements Listener {
     @EventHandler public void response(PlayerFormRespondedEvent event) {
         Player player=event.getPlayer();Dialog dialog=dialogs.get(player.getUniqueId());
         if(dialog==null || dialog.id()!=event.getFormID())return;
-        dialogs.remove(player.getUniqueId());if(event.wasClosed() || !player.hasPermission("tokaWorlds.admin"))return;
+        dialogs.remove(player.getUniqueId());if(!player.hasPermission("tokaWorlds.admin"))return;
+        if(event.wasClosed()){if(!dialog.kind().equals("menu"))try{showMenu(player);}catch(Exception error){player.sendMessage(t("err.show",error.getMessage()));}return;}
         try {
             mutable();
             if(dialog.kind().equals("menu")) {
@@ -363,7 +364,8 @@ public final class Main extends PluginBase implements Listener {
                     case 1 -> showAdd(player,false);
                     case 2 -> {validate(plan(player));checked.add(owner(player));FormWindowCustom form=new FormWindowCustom(t("ui.confirm.title"));form.addElement(new ElementLabel(describe(plan(player))));form.addElement(new ElementInput(t("ui.confirm.delay"),t("ui.confirm.placeholder"),"30"));form.addElement(new ElementToggle(t("ui.confirm.toggle"),false));dialogs.put(player.getUniqueId(),new Dialog(player.showFormWindow(form),"confirm",List.of()));}
                     case 3 -> {plan(player).clear();remember(player);showMenu(player);}
-                    default -> onCommand(player,null,"worlds",new String[]{"list"});
+                    case 4 -> onCommand(player,null,"worlds",new String[]{"list"});
+                    default -> {}
                 }
             } else if(dialog.kind().equals("confirm")) {
                 FormResponseCustom response=(FormResponseCustom)event.getResponse();if(response.getToggleResponse(2))execute(player,Integer.parseInt(response.getInputResponse(1)));else showMenu(player);

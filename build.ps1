@@ -5,7 +5,7 @@ try {
  & $Maven "-Dmaven.repo.local=$Repository" clean package
  if($LASTEXITCODE -ne 0){throw '編譯失敗'}
  New-Item -ItemType Directory -Force output | Out-Null
- Copy-Item target/tokaWorlds-1.1.1.jar output/tokaWorlds-1.1.1.jar -Force
- Get-FileHash output/tokaWorlds-1.1.1.jar
+ Copy-Item target/tokaWorlds-1.1.2.jar output/tokaWorlds-1.1.2.jar -Force
+ Get-FileHash output/tokaWorlds-1.1.2.jar
 } finally {Pop-Location}
 
