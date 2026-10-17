@@ -10,8 +10,6 @@
 # ---------------------------------------------------------------------------
 cmd:
   worlds:
-    # /worlds 的說明（與 plugin.yml 的 description 對應）
-    desc: "世界掛載與批次更名管理"
     # 用法，未知子指令時顯示；無參數
     usage:
       - "§e/worlds list §7| §e/worlds mount §aA §7| §e/worlds unmount §aA §7| §e/worlds rename §aA B §7[--link|--no-link]"

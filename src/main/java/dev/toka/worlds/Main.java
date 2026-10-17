@@ -16,7 +16,6 @@ import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.plugin.PluginBase;
 import com.google.gson.*;
 import java.nio.file.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import dev.toka.storage.*;
 import dev.toka.i18n.Messages;
@@ -43,7 +42,6 @@ public final class Main extends PluginBase implements Listener {
     private JsonObject state;
     private boolean storageHealthy;
     private Messages messages;
-    /** Texts shared by the plugin classes. */
     public Messages messages(){return messages;}
     private String t(String key,Object... arguments){return messages.text(key,arguments);}
     private final Map<String,Boolean> mounts=new LinkedHashMap<>();
@@ -90,6 +88,7 @@ public final class Main extends PluginBase implements Listener {
     }
     private String owner(CommandSender sender){return sender instanceof Player p?p.getUniqueId().toString():"console";}
     private List<Operation> plan(CommandSender sender){return plans.computeIfAbsent(owner(sender),key->new ArrayList<>());}
+    private List<Operation> planView(CommandSender sender){return plans.getOrDefault(owner(sender),List.of());}
     private void mutable(){if(!storageHealthy)throw new IllegalStateException(t("err.storageNotReady"));if(busy)throw new IllegalStateException(t("err.busy"));if(recovery!=null)throw new IllegalStateException(t("err.recoveryFirst",recovery));}
     static Path storagePath(Path data,Backend backend) {
         return data.resolve("storage").resolve(backend.name().toLowerCase(Locale.ROOT));
@@ -113,7 +112,7 @@ public final class Main extends PluginBase implements Listener {
         Boolean old=mounts.remove(name);
         try {saveState();}catch(Exception e){if(old!=null)mounts.put(name,old);throw e;}
     }
-    /** Names the teleport commands read as words, such as /tpw help; a world is not given one, and a better name is suggested. */
+    /** Rejects names that teleport commands read as keywords (reserved-names) and suggests alternatives. */
     private void checkName(String name) {
         java.util.List<String> words = getConfig().getStringList("reserved-names");
         if (words == null || words.isEmpty()) {
@@ -313,7 +312,7 @@ public final class Main extends PluginBase implements Listener {
                 case "list" -> {for(String name:paths.names()){Level level=getServer().getLevelByName(name);sender.sendMessage(level==null?t("msg.list.unmounted",name):t("msg.list.mounted",name,level.getPlayers().size()));}}
                 case "mount","unmount" -> {mutable();if(args.length!=2)throw new IllegalArgumentException(t("err.usage.mount",sub));if(sub.equals("mount"))checkName(args[1]);plan(sender).add(new Operation(sub,args[1],"",false));remember(sender);sender.sendMessage(t("msg.added"));}
                 case "rename" -> {mutable();if(args.length<3 || args.length>4)throw new IllegalArgumentException(t("err.usage.rename"));checkName(args[2]);boolean link=getConfig().getBoolean("link-on-rename",true);if(args.length==4){if(args[3].equals("--no-link"))link=false;else if(args[3].equals("--link"))link=true;else throw new IllegalArgumentException(t("err.unknownLink"));}plan(sender).add(new Operation("rename",args[1],args[2],link));remember(sender);sender.sendMessage(t("msg.added"));}
-                case "plan" -> sender.sendMessage(describe(plan(sender)));
+                case "plan" -> sender.sendMessage(describe(planView(sender)));
                 case "clear" -> {mutable();plan(sender).clear();remember(sender);sender.sendMessage(t("msg.cleared"));}
                 case "check" -> {mutable();validate(plan(sender));checked.add(owner(sender));sender.sendMessage(describe(plan(sender))+"\n"+t("msg.checkPass"));}
                 case "confirm" -> {if(args.length>2)throw new IllegalArgumentException(t("err.usage.confirm"));execute(sender,args.length==2?Integer.parseInt(args[1]):0);}
@@ -339,7 +338,7 @@ public final class Main extends PluginBase implements Listener {
         return true;
     }
     private void showMenu(Player player) throws Exception {
-        FormWindowSimple form=new FormWindowSimple(t("ui.menu.title"),describe(plan(player)));
+        FormWindowSimple form=new FormWindowSimple(t("ui.menu.title"),describe(planView(player)));
         for(String button:List.of(t("ui.menu.rename"),t("ui.menu.mount"),t("ui.menu.check"),t("ui.menu.clear"),t("ui.menu.list"),t("ui.menu.close")))form.addButton(new ElementButton(button));
         dialogs.put(player.getUniqueId(),new Dialog(player.showFormWindow(form),"menu",List.of()));
     }
@@ -362,7 +361,7 @@ public final class Main extends PluginBase implements Listener {
                 switch(((FormResponseSimple)event.getResponse()).getClickedButtonId()) {
                     case 0 -> showAdd(player,true);
                     case 1 -> showAdd(player,false);
-                    case 2 -> {validate(plan(player));checked.add(owner(player));FormWindowCustom form=new FormWindowCustom(t("ui.confirm.title"));form.addElement(new ElementLabel(describe(plan(player))));form.addElement(new ElementInput(t("ui.confirm.delay"),t("ui.confirm.placeholder"),"30"));form.addElement(new ElementToggle(t("ui.confirm.toggle"),false));dialogs.put(player.getUniqueId(),new Dialog(player.showFormWindow(form),"confirm",List.of()));}
+                    case 2 -> {validate(plan(player));checked.add(owner(player));FormWindowCustom form=new FormWindowCustom(t("ui.confirm.title"));form.addElement(new ElementLabel(describe(planView(player))));form.addElement(new ElementInput(t("ui.confirm.delay"),t("ui.confirm.placeholder"),"30"));form.addElement(new ElementToggle(t("ui.confirm.toggle"),false));dialogs.put(player.getUniqueId(),new Dialog(player.showFormWindow(form),"confirm",List.of()));}
                     case 3 -> {plan(player).clear();remember(player);showMenu(player);}
                     case 4 -> onCommand(player,null,"worlds",new String[]{"list"});
                     default -> {}
@@ -372,7 +371,7 @@ public final class Main extends PluginBase implements Listener {
             } else {
                 FormResponseCustom response=(FormResponseCustom)event.getResponse();String source=dialog.names().get(response.getDropdownResponse(0).getElementID());
                 Operation op=dialog.kind().equals("rename")?new Operation("rename",source,response.getInputResponse(1),response.getToggleResponse(2)):new Operation(response.getDropdownResponse(1).getElementID()==0?"mount":"unmount",source,"",false);
-                paths.existing(op.source());if(op.type().equals("rename"))paths.world(op.target());plan(player).add(op);remember(player);showMenu(player);
+                paths.existing(op.source());if(!op.type().equals("unmount"))checkName(op.type().equals("rename")?op.target():op.source());if(op.type().equals("rename"))paths.world(op.target());plan(player).add(op);remember(player);showMenu(player);
             }
         } catch(Exception error) {player.sendMessage(t("err.show",error.getMessage()));}
     }
