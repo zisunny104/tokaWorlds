@@ -1,120 +1,54 @@
 # tokaWorlds
 
-整體拆分現況只維護於 [拆分主文件](https://github.com/zisunny104/zero/blob/master/docs/ARCHITECTURE.md)；本 README 維護本專案的設定、API 與使用限制。
+**tokaWorlds 1.1.2** 是 Nukkit 世界管理插件，提供世界掛載／卸載與批次更名，更名時可連動 zero 與 tokaPortal 的世界欄位。管理指令只有 `/worlds`，保留核心原本的 `/world`。
 
-獨立的 Nukkit 世界管理插件，版本 **1.1.2**。目前已驗證 PM1E 4511，其他 Nukkit 分支仍待驗證。管理指令只有 `/worlds`；保留核心原本的 `/world`，不使用 `/tw` 或 `/level`。
+## 安裝
 
-## 功能與狀態
+- 需要 Java 21；已驗證 Nukkit PM1E 4511。
+- 將 `tokaWorlds-1.1.2.jar` 放入 `plugins/`，完整重啟（不使用 reload）。
+- 選用相依（softdepend）：zero、tokaPortal（更名連動）。
+- 使用共用套件 tokaStorage 與 tokaI18n，皆已內嵌於 JAR。
 
-| 功能 | 狀態 |
+## 指令與權限
+
+管理員輸入 `/worlds` 開啟視窗，或使用後台指令（`/worlds help` 查看全部子指令）：
+
+| 指令 | 用途 |
 | --- | --- |
-| 掛載、卸載既有世界 | 已實作；卸載不刪除地圖 |
-| 世界更名、批次待辦 | 已實作；目的地存在時停止 |
-| 遊戲內管理視窗 | 已實作；選世界 A、輸入 B、加入列表、確認全部 |
-| 延遲執行／取消排程 | 已實作；0～3600 秒，不是定時備份 |
-| 資料連動開關 | 預設開啟，每項可單獨關閉 |
-| 玩家暫停操作、移出、返回 | 已實作；實際客戶端行為待遊戲內驗證 |
-| 個別更名失敗還原 | 已實作；保留操作紀錄與引用／level.dat 還原資料 |
-| 完整壓縮備份、定時備份、備份還原 | 後續階段，尚未實作 |
+| `worlds list` | 列出世界 |
+| `worlds rename <A> <B> [--link｜--no-link]` | 加入更名待辦；`--no-link` 只改地圖資料夾 |
+| `worlds mount <A>`、`worlds unmount <A>` | 加入掛載／卸載待辦（卸載不刪地圖） |
+| `worlds plan`、`worlds check` | 查看、檢查待辦 |
+| `worlds confirm [秒數]` | 確認並延遲執行（0–3600 秒） |
+| `worlds clear`、`worlds cancel` | 清空待辦／工作開始前取消排程 |
+| `worlds return`、`worlds resend` | 玩家返回原位置／重送附近方塊 |
 
-## 使用流程
+| 權限 | 說明 | 預設 |
+| --- | --- | --- |
+| `tokaWorlds.use` | 使用自己的 `return` | 所有人 |
+| `tokaWorlds.admin` | 世界管理 | OP |
 
-管理員在遊戲內輸入 `/worlds` 開啟視窗。新增多個更名或掛載／卸載項目，檢查全部項目，輸入延遲秒數並勾選確認後執行。也能從後台使用：
+要點：每位管理員有自己的待辦；目標世界已存在時不覆蓋；預設世界不能在線卸載或更名；失敗時只還原當下項目並停止。工作開始時才集中移出受影響世界的玩家，完成後依新名稱返回。重啟後待辦需重新檢查與確認。
 
-```text
-worlds list
-worlds rename ZhuCheng chuklok
-worlds plan
-worlds check
-worlds confirm 30
-```
+## 設定（`config.yml`）
 
-如果其他插件的資料早已指向 `chuklok`，本次只改地圖可用 `worlds rename ZhuCheng chuklok --no-link`。預設連動也可使用，已指向新名稱的記錄不會再次修改。
+| key | 預設 | 說明 |
+| --- | --- | --- |
+| `language` | `zh-TW` | 語言 |
+| `reserved-names` | help、list、set、del、edit | 不可作為世界名稱的字 |
+| `link-on-rename` | `true` | 更名時是否預設連動其他插件資料 |
+| `storage.backend` | `sqlite` | `sqlite`、`json`、`yaml`；更換需停服並用 StorageCli 遷移 |
+| `evacuation-world` | `""` | 移出玩家的安全世界；空白用預設世界 |
+| `legacy-items` | 903、879 兩筆規則 | 舊物品編號轉換（`to`、`per-item`） |
 
-掛載／卸載：`worlds mount A`、`worlds unmount A`，同樣加入待辦後使用 `check`、`confirm`。`worlds clear` 清空待辦，`worlds cancel` 在工作開始前取消排程。待辦會保存，重啟後需要重新檢查與確認，**不會自行恢復執行排程**。
+資料放在 `plugins/tokaWorlds/storage/<格式>/`；`link-backups/` 為住家引用備份，並非整張世界的備份。
 
-每位管理員有自己的待辦。列表內同一世界不能重複操作、目標名稱不能重複，也不接受 A→B→C 或交換名稱等串接；請分批完成。這一版逐項生效，失敗只還原當下更名並停止剩餘工作，先前成功的項目保留。
+## 版本紀錄
 
-若 `worlds/chuklok` 已存在，不會覆蓋或合併。先完整停服、備份並在伺服器外整理舊資料夾，確保目標名稱空出後再執行。預設世界也不能在線卸載或更名；請先修改 `server.properties` 的 `level-name` 為另一張世界並重啟。
+- 1.1.2：子表單關閉後回到選單，選單新增關閉按鈕。
+- 1.1.0：所有文字移入 `lang/zh-TW.yml`（tokaI18n）；新增保留世界名稱（`reserved-names`）。
+- 1.0.8：後台記錄世界數與舊物品規則數。
+- 1.0.7：`/worlds resend` 重送附近樓梯、柵欄等方塊。
+- 1.0.5：轉換目前核心不認得的舊物品編號。
 
-## 玩家維護流程
-
-工作開始時才集中移出受影響世界的玩家；延遲倒數期間仍可正常遊玩。玩家位置及原本不可移動狀態會記錄，維護時限制移動、互動、破壞、放置、傳送指令及傷害。
-
-更名完成並掛載後，依新世界名稱返回原座標；只卸載時留在安全世界。工作失敗且還原成功時，返回原世界。玩家離線會保留返回位置，下次加入時嘗試恢復；目標未載入或傳送被其他插件拒絕時保留記錄，可用 `/worlds return` 再試。
-
-若原本世界未掛載，更名後仍維持未掛載。`evacuation-world` 可以指定已載入的安全世界；空白使用預設世界。安全世界不能同批卸載或更名。
-
-## 連動範圍與資料
-
-- **zero 1.7.7**：Area、Region、Land、傳送點、告示牌、方塊紀錄中明確的世界欄位。使用現有 ConnectionSource 與 SQL transaction，保留 ID、座標、擁有者等其他資料。
-- **tokaPortal 2.0.0**：住家位置的 `loc.level`，保留其他住家欄位。這版透過已驗證的資料提供者轉接器整合；其他版本或提供者會停止連動，避免猜測格式。
-- **核心**：更名資料夾，載入時更新世界內名稱。
-
-不會全面替換其他插件的設定，也不更改離線玩家原生 NBT、DbLib 設定或玩家 `lastLogoutPos` 顯示紀錄。未知整合需另加明確轉接器。關閉連動可能使資料留在舊名稱；zero 的保護世界檢查會回報尚未掛載的引用，避免當成空白保護資料。
-
-掛載狀態保存在正式儲存。卸載後下次啟動會在核心與其他插件初始載入完成後再次卸載；不會攔截其他插件日後自行掛載的行為。zero 知道哪些世界是刻意卸載，避免因此限制其他世界。
-
-## 部署與還原紀錄
-
-放入 `plugins/tokaWorlds-1.1.2.jar`，一併更新 zero 1.7.7，完整重啟伺服器。zero 的原 SQL 保持不變；tokaWorlds 1.0.0 舊資料必須先離線匯入，不能直接換 JAR。權限 `tokaWorlds.admin` 預設給 OP；一般玩家僅能使用自己的 `return`。
-
-正式儲存保存每項更名狀態、原始 `level.dat`、待辦、掛載狀態與玩家返回位置。`link-backups/` 仍是固定 JSON 的住家引用備份交換檔；zero 的引用備份在 `plugins/zero/world-rename-backups/`。**這些不是整張世界的壓縮備份**。
-
-若程序在更名中途終止，重啟後會偵測未完成紀錄並停止新的世界修改。此版不自動推測最後成功步驟，也沒有自動處理中斷工作的指令；請保留紀錄，停服後核對資料夾與引用備份，再人工處理。還原失敗也會保留紀錄並停止操作，避免繼續改動。
-
-## 多語系
-
-所有玩家訊息、表單、指令說明與後台文字都在 `src/main/resources/lang/zh-TW.yml`，由內嵌的 [tokaI18n](https://github.com/zisunny104/tokaI18n) 讀取；`config.yml` 的 `language` 決定語言（目前只有 `zh-TW`）。伺服器擁有者可把同名檔放進 `plugins/tokaWorlds/lang/` 覆蓋個別文字。`/worlds help` 顯示全部子指令說明。key 分區。共用的多語系原則見[拆分主文件](https://github.com/zisunny104/zero/blob/master/docs/ARCHITECTURE.md)。
-
-## 編譯與測試
-
-需要 Java 21、Maven、同層 tokaStorage 0.1.2（先執行 Maven install），以及已安裝到本機 Maven repository 的PM1E 專案發布的 `cn.nukkit:Nukkit:PM1E-4511`（provided）。執行 `./build.ps1`，可使用 `-Maven`、`-Repository` 指定路徑；預設沿用同層 `plugin-modernization/build/m2` 工作快取。輸出是專案根目錄 `output/tokaWorlds-1.1.2.jar`，不進版控。
-
-`tests/smoke/run.py` 是獨立核心整合測試，參數 `--core`、`--zero`、`--one`、`--portal`、`--orm`（含 ORM JAR 的資料夾）、`--sqlite` 與 `--jdk`。測試資料及核心日誌放在 `.build-tools/`，只使用 SQLite 記憶體測試資料庫及無效 Discord Token，**不使用正式 MySQL 或 VPS**。測試需要 Python 3 與網路供核心取得啟動資訊；測試產物不可部署。
-
-2026-10-04：掛載、卸載、連動／不連動更名、方塊資料保留、衝突不覆蓋、預設世界限制、保護世界引用檢查、模擬住家儲存失敗後的世界及 SQL 還原均通過。區域失效時進出訊息模組也保持啟用。測試沒有真實玩家連線，遊戲視窗、玩家凍結／返回、既有 MySQL 資料與有效 Discord 通知仍需正式環境驗證。
-
-
-## 1.0.2 正式儲存與離線轉換
-
-正式資料包括待辦、玩家返回位置、更名工作紀錄與掛載狀態，全部使用 tokaStorage 的同一份 `state` document。`config.yml` 只保留設定；`link-backups/` 是備份交換格式，維持 JSON。預設 `storage.backend: sqlite`，另支援 `json`、`yaml`，三者內容與 schema 相同。資料放在 `plugins/tokaWorlds/storage/sqlite/`、`json/` 或 `yaml/` 的 `documents.*`；不同格式使用不同目錄。
-
-啟動偵測舊正式資料而尚未匯入、切換格式卻沒有遷移、目前格式空白但其他格式有資料，會停用世界管理，避免把舊資料當成不存在。解析／schema 驗證或初始化失敗也停用管理。新安裝沒有舊資料時才建立空白儲存。更名步驟及引用連動前保存 journal，寫入失敗就停止新操作；若無法可靠保存更名紀錄，停止自動還原並要求停服人工核對，不猜測最後成功步驟。
-
-下面 CLI **必須完整停服**，不能在線對正在使用的儲存執行。目標資料夾必須尚不存在，來源維持原樣。先在插件資料夾之外產生新儲存，讀回與來源雜湊驗證通過後，才由管理員移入指定的 `storage/<格式>/`。CLI 不會自動切換設定或搬動正式地圖。
-
-```text
-java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli import-legacy /ser/kastw/plugins/tokaWorlds sqlite /ser/worlds-storage-import/sqlite /ser/worlds-storage-backups
-java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli inspect sqlite /ser/worlds-storage-import/sqlite
-```
-
-舊來源包含 `config.yml` 的 mounted-worlds／unmounted-worlds、`plans/*.json`、`pending-returns.json` 與 `operations/*.json`。有未完成更名紀錄也會保留，重新啟動仍阻止修改。舊檔先保留作備份；有效的新儲存載入後不會自動再匯入它們。
-
-格式轉換範例：
-
-```text
-java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli migrate sqlite /ser/kastw/plugins/tokaWorlds/storage/sqlite json /ser/worlds-storage-import/json /ser/worlds-storage-backups
-java -cp tokaWorlds-1.0.2.jar dev.toka.worlds.StorageCli inspect json /ser/worlds-storage-import/json
-```
-
-離線轉換保存來源快照、驗證讀回，不覆蓋目的地；轉換失敗的暫存不可啟用。將驗證完成的目標移入 `storage/json/` 並修改 `storage.backend`，再重啟。舊格式目錄仍保留，不能在線交替讀寫。
-
-**回退限制：** tokaWorlds 1.0.0 不認得 1.0.2 的新儲存。回退 JAR 前，必須還原升級前的完整插件資料備份與對應世界／SQL 引用備份；不能拿較舊的 pending returns 或操作紀錄覆蓋已完成的新工作。本版沒有自動把新儲存反向輸出成 1.0.0 的工具。
-
-本版儲存與三格式轉換的正式環境／真實玩家驗證仍未完成。前面的 1.0.0 遊戲流程測試紀錄不是 1.0.2 全面驗證結果。SQLite JDBC 包含在單一插件 JAR 的 `META-INF/toka/sqlite-jdbc.jar`，以獨立 classloader 載入，避免與核心或其他插件的 SQLite 類別混用；保留完整 JNI 類別名稱與 native resource。SnakeYAML 重定位避免與核心版本混用。
-
-2026-10-04 的 1.0.2 本機驗收：三後端各通過完整世界操作測試，停服後讀回兩個成功與一個已還原工作紀錄；CLI 三格式舊資料匯入、九種互轉及目的地不覆寫通過；實際核心也確認未匯入舊資料或只改 backend 設定會停用管理，不建立空資料庫。測試使用 PM1E 4511、zero 1.7.7 及 tokaPortal 2.0.0 fixture；不是最新 tokaPortal 或正式 VPS 的相容性保證。重現測試位於同層 plugin-modernization/tests/world_storage_*.py。
-
-
-## 1.0.2 相依整合
-
-tokaStorage 升級為 0.1.1 並私有打包，避免 Profiles／Portal 共用 classloader 混用不同版本。住家 adapter 支援已驗證的 tokaPortal 2.0.0 與 2.1.1；三儲存後端與 zero 1.7.8／Portal 2.1.1 的完整更名、掛載與失敗還原測試通過。方塊稽核、備份還原、世界固定識別碼及 Profiles 接管仍在後續計畫，不在此版宣稱完成。
-
-## 1.0.3 SQLite 相容性修正
-
-修正核心或其他插件提供不同 SQLite JDBC 版本時，可能出現 SQLiteConnection.setLimit 的 NoSuchMethodError。沿用原儲存格式，不需要轉換資料；完整停服、備份插件資料後替換 JAR，移走舊版 JAR 再重啟，不使用 reload。DbLib 是否為衝突來源尚未確認，無需為此移除 DbLib。新增 tests/sqlite-isolation：以故意不相容的父層 driver 驗證 SQLite 寫入、關閉、重新開啟及讀回。此項測試不代表正式伺服器所有世界管理功能已重新驗收。
-
-
-
-
+授權：MIT。
