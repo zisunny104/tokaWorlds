@@ -45,3 +45,7 @@ legacy-items:
   "879":                      # 原本是 cobblestone_double_slab（圓石雙層半磚）
     to: "minecraft:cobblestone_slab"
     per-item: 2
+
+# 世界掛載、卸載、更名完成時，後台會記錄耗時（毫秒）。超過這個數字的操作改用黃色警告色顯示，可用來判斷是否會卡住伺服器。
+# 填整數，預設 200。
+slow-operation-ms: 200

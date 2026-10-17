@@ -189,28 +189,29 @@ public final class Main extends PluginBase implements Listener {
         JsonObject old=state;state=state.deepCopy();state.getAsJsonObject("journals").add(id,next);
         try {saveState();value.addProperty("stage",stage);}catch(Exception e){state=old;recovery="journal:"+id;throw e;}
     }
-    private void rename(Operation op) throws Exception {
+    private void rename(Operation op,Timing timing) throws Exception {
         paths.existing(op.source());paths.available(op.target());
         List<Links.Change> changes=Links.prepare(this,op.source(),op.target(),op.link());
         boolean mounted=getServer().getLevelByName(op.source())!=null;
         Path source=paths.world(op.source()),target=paths.world(op.target());
         String log=UUID.randomUUID().toString();
         JsonObject record=new JsonObject();record.addProperty("source",op.source());record.addProperty("target",op.target());record.addProperty("was-mounted",mounted);
-        JsonArray receipts=new JsonArray();for(Links.Change change:changes){JsonObject receipt=new JsonObject();receipt.addProperty("description",change.description());receipt.addProperty("backup",change.token());receipts.add(receipt);}record.add("receipts",receipts);
+        JsonArray receipts=new JsonArray();for(Links.Change change:changes){receipts.add(Receipts.write(change.code(),change.args(),change.token(),messages));}record.add("receipts",receipts);
         byte[] metadata=Files.readAllBytes(source.resolve("level.dat"));record.addProperty("level.dat-before",Base64.getEncoder().encodeToString(metadata));
-        journal(log,record,"prepared");boolean moved=false;List<Links.Change> attempted=new ArrayList<>();
+        journal(log,record,"prepared");timing.mark(t("log.timing.prepare"));boolean moved=false;List<Links.Change> attempted=new ArrayList<>();
         try {
-            journal(log,record,"unloading");unmount(op.source());journal(log,record,"unloaded");
-            journal(log,record,"renaming");paths.available(op.target());Files.move(source,target);moved=true;journal(log,record,"renamed");
+            journal(log,record,"unloading");unmount(op.source());journal(log,record,"unloaded");timing.mark(t("log.timing.unload"));
+            journal(log,record,"renaming");paths.available(op.target());Files.move(source,target);moved=true;journal(log,record,"renamed");timing.mark(t("log.timing.move"));
             journal(log,record,"loading-target");
             if(!getServer().loadLevel(op.target()))throw new IllegalStateException(t("err.renameLoadFailed"));
             Level renamed=getServer().getLevelByName(op.target());
-            renamed.getProvider().updateLevelName(op.target());renamed.getProvider().saveLevelData();
+            renamed.getProvider().updateLevelName(op.target());renamed.getProvider().saveLevelData();timing.mark(t("log.timing.load"));
             for(Links.Change change:changes){journal(log,record,"linking-"+attempted.size());attempted.add(change);change.commit();journal(log,record,"linked-"+attempted.size());}
-            journal(log,record,"linked");
+            journal(log,record,"linked");timing.mark(t("log.timing.link"));
             journal(log,record,"saving-mounts");
             forget(op.source());Links.mounted(this,op.source(),true);mark(op.target(),true);
             if(!mounted)unmount(op.target());
+            timing.mark(t("log.timing.mounts"));
             // A completed journal must include the persisted new destination for returning players.
             finishReturns(op);
             journal(log,record,"complete");
@@ -236,17 +237,31 @@ public final class Main extends PluginBase implements Listener {
             executing=true;
             try {
                 if(!sender.hasPermission("tokaWorlds.admin"))throw new IllegalStateException(t("err.permissionRemoved"));
-                validate(jobs);evacuate(jobs);
+                Timing whole=new Timing(System::nanoTime);
+                validate(jobs);whole.mark(t("log.timing.validate"));evacuate(jobs);whole.mark(t("log.timing.evacuate"));
                 for(Operation op:jobs) {
-                    if(op.type().equals("mount"))mount(op.source());else if(op.type().equals("unmount"))unmount(op.source());else rename(op);
-                    finishReturns(op);plan(sender).remove(op);remember(sender);getLogger().info("WORLD_OPERATION_PASS "+op.type()+" "+op.source()+" → "+op.target());
+                    Timing timing=new Timing(System::nanoTime);
+                    if(op.type().equals("mount")){mount(op.source());timing.mark(t("log.timing.mount"));}
+                    else if(op.type().equals("unmount")){unmount(op.source());timing.mark(t("log.timing.unmount"));}
+                    else rename(op,timing);
+                    finishReturns(op);plan(sender).remove(op);remember(sender);timing.mark(t("log.timing.finish"));
+                    getLogger().info("WORLD_OPERATION_PASS "+op.type()+" "+op.source()+" → "+op.target());
+                    logTiming("log.timing.operation",timing,opName(op.type()),op.type().equals("rename")?op.source()+" → "+op.target():op.source());
+                    whole.mark(opName(op.type())+" "+op.source());
                 }
                 sender.sendMessage(t("msg.allDone"));
+                logTiming("log.timing.total",whole,jobs.size());
             } catch(Exception error) {sender.sendMessage(t("msg.stopped",error.getMessage()));getLogger().error(t("log.jobFailed"),error);}
             finally {releasePlayers();maintenance.clear();busy=false;executing=false;scheduled=null;}
         },Math.max(1,delay*20));
     }
-    private void saveReturns() throws Exception {saveState();}
+    /** One log line per finished operation; the warning colour is used when the total passes slow-operation-ms. */
+    private void logTiming(String key,Timing timing,Object... arguments) {
+        long total=timing.totalMs();boolean slow=Timing.slow(total,getConfig().getLong("slow-operation-ms",Timing.DEFAULT_SLOW_MS));
+        Object[] all=Arrays.copyOf(arguments,arguments.length+2);all[arguments.length]=total;all[arguments.length+1]=timing.detail();
+        getLogger().info(t(slow?key+"Slow":key,all));
+    }
+    private void saveReturns()throws Exception {saveState();}
     private boolean teleport(Player player,Location location) {
         internalTeleport=true;try{return player.teleport(location);}finally{internalTeleport=false;}
     }

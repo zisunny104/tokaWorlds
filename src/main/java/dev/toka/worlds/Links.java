@@ -12,7 +12,7 @@ import dev.toka.i18n.Messages;
 /** Only verified adapters are used. No global text replacement of plugin files. */
 final class Links {
     static final Gson JSON=new GsonBuilder().serializeNulls().setPrettyPrinting().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
-    interface Change {String description(); void commit() throws Exception; void rollback() throws Exception; String token();}
+    interface Change {String code(); String[] args(); void commit() throws Exception; void rollback() throws Exception; String token();}
     static Object call(Object target,String method,Class<?>[] types,Object... args) throws Exception {
         try {return target.getClass().getMethod(method,types).invoke(target,args);}
         catch(InvocationTargetException e) {Throwable t=e.getCause();if(t instanceof Exception ex) throw ex;throw new IllegalStateException(t);}
@@ -33,7 +33,7 @@ final class Links {
             if(!zero.isEnabled()) throw new IllegalStateException(msg.text("err.zeroDisabled"));
             String token=(String)call(zero,"prepareWorldRename",new Class[]{String.class,String.class},oldName,newName);
             int count=JsonParser.parseString(Files.readString(Path.of(token),StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("entries").size();
-            changes.add(new Change(){public String description(){return msg.text("status.link.zero",count);}
+            changes.add(new Change(){public String code(){return Receipts.ZERO;}public String[] args(){return new String[]{String.valueOf(count)};}
                 public String token(){return token;}
                 public void commit() throws Exception {call(zero,"commitWorldRename",new Class[]{String.class},token);}
                 public void rollback() throws Exception {call(zero,"rollbackWorldRename",new Class[]{String.class},token);}});
@@ -51,7 +51,7 @@ final class Links {
             Method save=storage.getClass().getMethod("save",ConfigSection.class);
             Path token=main.getDataFolder().toPath().resolve("link-backups").resolve(UUID.randomUUID()+"-homes.json");write(token,before);
             final int changed=homes;
-            changes.add(new Change(){public String description(){return msg.text("status.link.portal",changed);}public String token(){return token.toAbsolutePath().toString();}
+            changes.add(new Change(){public String code(){return Receipts.PORTAL;}public String[] args(){return new String[]{String.valueOf(changed)};}public String token(){return token.toAbsolutePath().toString();}
                 private String current() throws Exception {return JSON.toJson(field(provider,"document").get(provider));}
                 private void persist(String value) throws Exception {
                     @SuppressWarnings("unchecked") Map<String,Object> map=JSON.fromJson(value,Map.class);

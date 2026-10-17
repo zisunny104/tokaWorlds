@@ -49,6 +49,7 @@
 | `reserved-names` | help、list、set、del、edit | 不可作為世界名稱的字 |
 | `link-on-rename` | `true` | 更名時是否預設連動 zero 與 tokaPortal 的資料 |
 | `evacuation-world` | 空白 | 卸載或更名時，玩家被移往的世界；空白使用預設世界 |
+| `slow-operation-ms` | `200` | 世界操作耗時超過此毫秒數時，後台耗時紀錄改用警告色 |
 | `legacy-items` | 903、879 兩筆 | 舊物品編號轉換規則，`to` 為新物品（留空或 `remove` 代表移除），`per-item` 為每個舊物換幾個 |
 
 物品轉換紀錄寫在 `plugins/tokaWorlds/legacy-items.log`，可依此手動還原。
@@ -59,4 +60,4 @@
 - **更名後住家的世界名稱沒變？** 確認該次更名使用 `--link`，或 `link-on-rename` 為 `true`。
 - **玩家沒有被送回原位？** 請玩家輸入 `/worlds return`。
 
-目前版本 1.1.4
+目前版本 1.2.0
