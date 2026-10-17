@@ -139,6 +139,8 @@ err:
   noWorlds: "沒有可管理的世界"
   playerOnly: "只能在遊戲內使用"
   unknownLink: "未知連動選項"
+  # 世界名稱是指令關鍵字。${0}=輸入的名稱 ${1}、${2}=建議的名稱
+  reservedName: "「§a${0}§c」是保留字（/tpw 等指令把它當關鍵字），請換一個名稱，例如 §a${1}§c 或 §a${2}"
   usage:
     # ${0}=子指令（mount 或 unmount）
     mount: "用法：/worlds ${0} 世界名稱"

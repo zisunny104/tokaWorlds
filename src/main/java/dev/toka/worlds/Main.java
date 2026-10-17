@@ -113,6 +113,18 @@ public final class Main extends PluginBase implements Listener {
         Boolean old=mounts.remove(name);
         try {saveState();}catch(Exception e){if(old!=null)mounts.put(name,old);throw e;}
     }
+    /** Names the teleport commands read as words, such as /tpw help; a world is not given one, and a better name is suggested. */
+    private void checkName(String name) {
+        java.util.List<String> words = getConfig().getStringList("reserved-names");
+        if (words == null || words.isEmpty()) {
+            words = java.util.List.of("help", "list", "set", "del", "edit");
+        }
+        String clean = name.strip();
+        if (words.stream().anyMatch(word -> word.equalsIgnoreCase(clean))) {
+            throw new IllegalArgumentException(t("err.reservedName", clean, clean + "_world", "my_" + clean));
+        }
+    }
+
     private void mount(String name) throws Exception {
         if(!storageHealthy)throw new IllegalStateException(t("err.storageNotReadyMount"));
         paths.existing(name);
@@ -299,8 +311,8 @@ public final class Main extends PluginBase implements Listener {
             switch(sub) {
                 case "cancel" -> {if(executing)throw new IllegalStateException(t("err.alreadyStarted"));if(scheduled!=null)scheduled.cancel();scheduled=null;busy=false;checked.remove(owner(sender));sender.sendMessage(t("msg.cancelled"));}
                 case "list" -> {for(String name:paths.names()){Level level=getServer().getLevelByName(name);sender.sendMessage(level==null?t("msg.list.unmounted",name):t("msg.list.mounted",name,level.getPlayers().size()));}}
-                case "mount","unmount" -> {mutable();if(args.length!=2)throw new IllegalArgumentException(t("err.usage.mount",sub));plan(sender).add(new Operation(sub,args[1],"",false));remember(sender);sender.sendMessage(t("msg.added"));}
-                case "rename" -> {mutable();if(args.length<3 || args.length>4)throw new IllegalArgumentException(t("err.usage.rename"));boolean link=getConfig().getBoolean("link-on-rename",true);if(args.length==4){if(args[3].equals("--no-link"))link=false;else if(args[3].equals("--link"))link=true;else throw new IllegalArgumentException(t("err.unknownLink"));}plan(sender).add(new Operation("rename",args[1],args[2],link));remember(sender);sender.sendMessage(t("msg.added"));}
+                case "mount","unmount" -> {mutable();if(args.length!=2)throw new IllegalArgumentException(t("err.usage.mount",sub));if(sub.equals("mount"))checkName(args[1]);plan(sender).add(new Operation(sub,args[1],"",false));remember(sender);sender.sendMessage(t("msg.added"));}
+                case "rename" -> {mutable();if(args.length<3 || args.length>4)throw new IllegalArgumentException(t("err.usage.rename"));checkName(args[2]);boolean link=getConfig().getBoolean("link-on-rename",true);if(args.length==4){if(args[3].equals("--no-link"))link=false;else if(args[3].equals("--link"))link=true;else throw new IllegalArgumentException(t("err.unknownLink"));}plan(sender).add(new Operation("rename",args[1],args[2],link));remember(sender);sender.sendMessage(t("msg.added"));}
                 case "plan" -> sender.sendMessage(describe(plan(sender)));
                 case "clear" -> {mutable();plan(sender).clear();remember(sender);sender.sendMessage(t("msg.cleared"));}
                 case "check" -> {mutable();validate(plan(sender));checked.add(owner(sender));sender.sendMessage(describe(plan(sender))+"\n"+t("msg.checkPass"));}

@@ -4,6 +4,15 @@
 # 想修改個別文字，可把同名檔放進 plugins/tokaWorlds/lang/（例如 zh-TW.yml），沒寫到的文字仍使用內建的。
 language: zh-TW
 
+# 不能拿來當世界名稱的字（不分大小寫）。這些字是指令的關鍵字，例如 /tpw help 會顯示說明；
+# 掛載或更名成這些名稱時會被擋下，並建議其他名稱。已經存在的同名世界不受影響，仍可卸載或更名。
+reserved-names:
+  - help
+  - list
+  - set
+  - del
+  - edit
+
 # 世界更名時是否預設連動其他插件的世界資料（zero 的已知世界欄位、tokaPortal 2.0.0 以上的住家）。
 # 可填 true（連動，預設）或 false（只改地圖資料夾）。
 # 單次更名也可以用 /worlds rename A B --link 或 --no-link 個別指定。
