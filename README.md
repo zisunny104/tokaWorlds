@@ -65,7 +65,7 @@ worlds confirm 30
 
 ## 多語系
 
-所有玩家訊息、表單、指令說明與後台文字都在 `src/main/resources/lang/zh-TW.yml`，由內嵌的 [tokaI18n](https://github.com/zisunny104/tokaI18n) 讀取；`config.yml` 的 `language` 決定語言（目前只有 `zh-TW`）。伺服器擁有者可把同名檔放進 `plugins/tokaWorlds/lang/` 覆蓋個別文字。`/worlds help` 顯示全部子指令說明。key 分區、顏色對照與待確認事項見 [docs/I18N.md](docs/I18N.md)。
+所有玩家訊息、表單、指令說明與後台文字都在 `src/main/resources/lang/zh-TW.yml`，由內嵌的 [tokaI18n](https://github.com/zisunny104/tokaI18n) 讀取；`config.yml` 的 `language` 決定語言（目前只有 `zh-TW`）。伺服器擁有者可把同名檔放進 `plugins/tokaWorlds/lang/` 覆蓋個別文字。`/worlds help` 顯示全部子指令說明。key 分區。共用的多語系原則見[拆分主文件](https://github.com/zisunny104/zero/blob/master/docs/ARCHITECTURE.md)。
 
 ## 編譯與測試
 
