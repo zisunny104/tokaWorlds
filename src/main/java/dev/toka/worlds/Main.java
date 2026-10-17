@@ -32,6 +32,7 @@ public final class Main extends PluginBase implements Listener {
     public record ReturnPoint(String uuid,String world,double x,double y,double z,double yaw,double pitch) {
         ReturnPoint in(String next){return new ReturnPoint(uuid,next,x,y,z,yaw,pitch);}
     }
+    private final Map<UUID,cn.nukkit.scheduler.TaskHandler> resends=new HashMap<>();
     private boolean internalTeleport;
     private WorldPaths paths;
     private boolean busy;
@@ -300,7 +301,7 @@ public final class Main extends PluginBase implements Listener {
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void playerCommand(PlayerCommandPreprocessEvent event){if(frozen.containsKey(event.getPlayer().getUniqueId())){event.setCancelled();event.getPlayer().sendMessage(t("msg.maintenance.busy"));}}
     @EventHandler public void join(PlayerJoinEvent event){getServer().getScheduler().scheduleDelayedTask(this,()->{if(event.getPlayer().isOnline()&&!busy)returnPlayer(event.getPlayer());},20);}
-    @Override public void onDisable(){if(scheduled!=null)scheduled.cancel();releasePlayers();maintenance.clear();busy=false;if(store!=null)try{store.close();}catch(Exception error){getLogger().error(t("log.closeFailed"),error);}storageHealthy=false;}
+    @Override public void onDisable(){if(scheduled!=null)scheduled.cancel();resends.values().forEach(cn.nukkit.scheduler.TaskHandler::cancel);resends.clear();releasePlayers();maintenance.clear();busy=false;if(store!=null)try{store.close();}catch(Exception error){getLogger().error(t("log.closeFailed"),error);}storageHealthy=false;}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
         if(args.length==1 && args[0].equals("return") && sender instanceof Player player){if(!busy)returnPlayer(player);return true;}
         if(!sender.hasPermission("tokaWorlds.admin"))return false;
@@ -319,23 +320,43 @@ public final class Main extends PluginBase implements Listener {
                 case "resend" -> {
                     if(!(sender instanceof Player self))throw new IllegalArgumentException(t("err.playerOnly"));
                     int radius=args.length>=2?Math.max(1,Math.min(48,Integer.parseInt(args[1]))):16;
-                    var level=self.getLevel();var list=new ArrayList<cn.nukkit.math.Vector3>();
-                    int cx=self.getFloorX(),cy=self.getFloorY(),cz=self.getFloorZ();
-                    for(int x=cx-radius;x<=cx+radius;x++)for(int z=cz-radius;z<=cz+radius;z++){
-                        if(level.getChunkIfLoaded(x>>4,z>>4)==null)continue;
-                        for(int y=Math.max(-64,cy-radius);y<=Math.min(319,cy+radius);y++){
-                            var block=level.getBlock(x,y,z);
-                            if(block instanceof cn.nukkit.block.BlockStairs||block instanceof cn.nukkit.block.ConnectionBlock||block instanceof cn.nukkit.block.BlockWall||block instanceof cn.nukkit.block.BlockDoor||block instanceof cn.nukkit.block.BlockFenceGate)list.add(new cn.nukkit.math.Vector3(x,y,z));
-                        }
-                    }
-                    level.sendBlocks(new Player[]{self},list.toArray(new cn.nukkit.math.Vector3[0]),cn.nukkit.network.protocol.UpdateBlockPacket.FLAG_ALL_PRIORITY);
-                    sender.sendMessage(t("msg.resend",radius,list.size()));
+                    if(resends.containsKey(self.getUniqueId()))throw new IllegalStateException(t("err.resendRunning"));
+                    Resend job=new Resend(self,radius);
+                    resends.put(self.getUniqueId(),getServer().getScheduler().scheduleRepeatingTask(this,job,1));
+                    sender.sendMessage(t("msg.resendStart",radius));
                 }
                 case "help" -> {for(String line:messages.lines("help.worlds"))sender.sendMessage(line);}
                 default -> sender.sendMessage(t("cmd.worlds.usage"));
             }
         } catch(Exception error) {sender.sendMessage(t("err.show",error.getMessage()));}
         return true;
+    }
+    /** Resend scans two x-slices per tick; the running task is the only state. */
+    static final int RESEND_SLICES=2;
+    static int sliceEnd(int from,int last){return Math.min(last,from+RESEND_SLICES-1);}
+    private void stopResend(UUID id){var task=resends.remove(id);if(task!=null)task.cancel();}
+    private final class Resend implements Runnable {
+        private final Player player;private final Level level;private final int radius,cx,cy,cz,last;private int x,total;
+        Resend(Player player,int radius){this.player=player;level=player.getLevel();this.radius=radius;cx=player.getFloorX();cy=player.getFloorY();cz=player.getFloorZ();x=cx-radius;last=cx+radius;}
+        @Override public void run() {
+            UUID id=player.getUniqueId();
+            if(!player.isOnline())stopResend(id);
+            else if(player.getLevel()!=level||!getServer().getLevels().containsValue(level)){stopResend(id);player.sendMessage(t("msg.resendAborted"));}
+            else try {
+                var list=new ArrayList<cn.nukkit.math.Vector3>();
+                int end=sliceEnd(x,last);
+                for(;x<=end;x++)for(int z=cz-radius;z<=cz+radius;z++){
+                    if(level.getChunkIfLoaded(x>>4,z>>4)==null)continue;
+                    for(int y=Math.max(-64,cy-radius);y<=Math.min(319,cy+radius);y++){
+                        var block=level.getBlock(x,y,z);
+                        if(block instanceof cn.nukkit.block.BlockStairs||block instanceof cn.nukkit.block.ConnectionBlock||block instanceof cn.nukkit.block.BlockWall||block instanceof cn.nukkit.block.BlockDoor||block instanceof cn.nukkit.block.BlockFenceGate)list.add(new cn.nukkit.math.Vector3(x,y,z));
+                    }
+                }
+                total+=list.size();
+                level.sendBlocks(new Player[]{player},list.toArray(new cn.nukkit.math.Vector3[0]),cn.nukkit.network.protocol.UpdateBlockPacket.FLAG_ALL_PRIORITY);
+                if(x>last){stopResend(id);player.sendMessage(t("msg.resend",radius,total));}
+            } catch(Exception error) {stopResend(id);player.sendMessage(t("err.show",error.getMessage()));}
+        }
     }
     private void showMenu(Player player) throws Exception {
         FormWindowSimple form=new FormWindowSimple(t("ui.menu.title"),describe(planView(player)));
@@ -375,5 +396,5 @@ public final class Main extends PluginBase implements Listener {
             }
         } catch(Exception error) {player.sendMessage(t("err.show",error.getMessage()));}
     }
-    @EventHandler public void quit(PlayerQuitEvent event){dialogs.remove(event.getPlayer().getUniqueId());Boolean was=frozen.remove(event.getPlayer().getUniqueId());if(was!=null)event.getPlayer().setImmobile(was);}
+    @EventHandler public void quit(PlayerQuitEvent event){stopResend(event.getPlayer().getUniqueId());dialogs.remove(event.getPlayer().getUniqueId());Boolean was=frozen.remove(event.getPlayer().getUniqueId());if(was!=null)event.getPlayer().setImmobile(was);}
 }
