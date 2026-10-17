@@ -23,14 +23,14 @@ cmd:
 # ---------------------------------------------------------------------------
 help:
   worlds:
-    - "§6§l世界管理 說明"
+    - "§6=== §f§l世界管理 說明§r §6==="
     - "§e/worlds §7- §b遊戲內開啟管理視窗（主控台顯示本說明）"
     - "§e/worlds list §7- §b列出世界與掛載狀態、線上玩家數"
     - "§e/worlds mount <世界> §7- §b把世界加入待辦：掛載"
     - "§e/worlds unmount <世界> §7- §b把世界加入待辦：卸載（不刪除地圖）"
     - "§e/worlds rename <A> <B> [--link|--no-link] §7- §b把世界更名加入待辦；--link 連動 zero／tokaPortal，--no-link 只改地圖"
     - "§e/worlds plan §7- §b查看自己的待辦列表"
-    - "§e/worlds check §7- §b檢查全部待辦（排程前必須先檢查）"
+    - "§e/worlds check §7- §b檢查全部待辦（排程前必檢查）"
     - "§e/worlds confirm [延遲秒數] §7- §b排程執行，延遲 0～3600 秒，預設 0"
     - "§e/worlds clear §7- §b清空自己的待辦"
     - "§e/worlds cancel §7- §b工作開始前取消排程，待辦保留"
@@ -49,15 +49,15 @@ msg:
     rename: "§a${0}§b. §a${1} ${2}§b → §a${3}§b ${4}§b；線上玩家 §a${5}"
     # 待辦列表結尾說明（多行；無參數）
     footer:
-      - "§b玩家會先移到其他世界並暫停操作，完成更名後返回原座標；每項完成即生效。失敗時停止剩餘項目，已完成項目保留。"
-      - "§b連動範圍：zero 已知世界欄位、tokaPortal 2.0.0 住家；不改其他插件與離線玩家檔案。"
-      - "§b目的資料夾存在時不覆蓋。這不是完整地圖備份。"
+      - "§b更名時玩家先移到其他世界，完成後返回原座標；失敗即停止，已完成項目保留。"
+      - "§b連動範圍：zero 世界欄位、tokaPortal 2.0.0 住家。"
+      - "§b目的資料夾已存在時不覆蓋。"
   # 已加入待辦；無參數
-  added: "§a已加入待辦§b；§e/worlds check §b→ §e/worlds confirm"
+  added: "§a已加入待辦"
   # 待辦已清空；無參數
   cleared: "§a待辦已清空"
   # 檢查通過；無參數
-  checkPass: "§a檢查通過§b；§e/worlds confirm [延遲秒數]"
+  checkPass: "§a檢查通過"
   # 排程已取消；無參數
   cancelled: "§a排程已取消，待辦保留。"
   # 已排程。${0}=項目數 ${1}=延遲秒數
@@ -75,19 +75,19 @@ msg:
   resend: "§a已重新送出周圍 §b${0} §a格內的樓梯、柵欄、玻璃片、牆、門與柵欄門，共 §b${1} §a個方塊，只影響你自己的畫面"
   maintenance:
     # 維護開始，玩家被移出並凍結；無參數
-    start: "§e世界維護開始，暫停移動與互動；完成後會自動返回。"
+    start: "§e世界維護開始，完成後自動返回。"
     # 維護期間輸入指令被擋；無參數
-    busy: "§e世界維護中，請稍候。"
+    busy: "§e世界維護中。"
   return:
     # 原世界尚未恢復；無參數
-    notRestored: "§e原世界尚未恢復，返回紀錄已保留；掛載後可使用 §a/worlds return§e。"
+    notRestored: "§e原世界尚未恢復，掛載後可用 §a/worlds return§e 返回。"
     # 已返回；無參數
     done: "§a世界維護完成，已返回原位置。"
     # 返回傳送被拒絕；無參數
-    rejected: "§e返回傳送被拒絕，紀錄已保留；可稍後使用 §a/worlds return§e。"
+    rejected: "§e返回傳送被拒絕，可用 §a/worlds return§e 再試。"
   legacy:
     # 玩家上線時背包的舊編號物品已被換成現在的物品；無參數
-    converted: "§e你背包裡有舊版留下的物品，已換成現在的版本，請查看背包。"
+    converted: "§e背包內的舊版物品已換成現行版本。"
 
 # ---------------------------------------------------------------------------
 # err.<名>：錯誤／拒絕。這些文字會被包進 err.show 顯示給玩家，所以本身不加顏色
@@ -96,10 +96,10 @@ err:
   # 把錯誤原因顯示給玩家或指令執行者。${0}=錯誤原因
   show: "§c${0}"
   # 一般錯誤
-  legacyDataFound: "偵測到舊資料，請停服執行 StorageCli import-legacy；不會自動匯入。"
-  otherFormat: "其他儲存格式已有資料，請先離線 migrate，不能只更改設定。"
-  legacyNotImported: "新儲存未含舊資料，請先離線匯入。"
-  otherFormatEmpty: "其他格式已有資料但目前格式為空，停止初始化；請離線遷移。"
+  legacyDataFound: "偵測到舊資料，需停服執行 StorageCli import-legacy 匯入。"
+  otherFormat: "其他儲存格式已有資料，需先離線 migrate。"
+  legacyNotImported: "新儲存未含舊資料，需先離線匯入。"
+  otherFormatEmpty: "其他格式已有資料但目前格式為空，停止初始化，需離線遷移。"
   storageNotReady: "儲存未就緒，停止世界管理"
   busy: "已有世界工作排程／執行中"
   # ${0}=未完成的工作代號
@@ -110,7 +110,7 @@ err:
   # ${0}=世界名稱
   coreMountFailed: "核心未能掛載：${0}"
   needOtherWorld: "需要另一張已載入世界供玩家移出"
-  defaultWorldNoUnmount: "預設世界不能卸載／更名；請先在 server.properties 換預設世界並重啟。"
+  defaultWorldNoUnmount: "預設世界不能卸載／更名，需先在 server.properties 換預設世界。"
   # ${0}=玩家名稱
   playerCannotMove: "玩家無法移出：${0}"
   worldStillHasPlayers: "世界仍有玩家，停止工作"
@@ -129,7 +129,7 @@ err:
   evacuationConflict: "移出玩家用的世界不能同時排入卸載／更名"
   renameLoadFailed: "更名後世界無法載入"
   alreadyStarted: "工作已開始，無法中途取消"
-  notChecked: "請先執行 /worlds check 檢查全部項目"
+  notChecked: "尚未檢查，需先執行 /worlds check"
   delayRange: "延遲秒數範圍為 0～3600"
   permissionRemoved: "執行權限已移除"
   # ${0}=玩家名稱
@@ -140,7 +140,7 @@ err:
   playerOnly: "只能在遊戲內使用"
   unknownLink: "未知連動選項"
   # 世界名稱是指令關鍵字。${0}=輸入的名稱 ${1}、${2}=建議的名稱
-  reservedName: "「§a${0}§c」是保留字（/tpw 等指令把它當關鍵字），請換一個名稱，例如 §a${1}§c 或 §a${2}"
+  reservedName: "「§a${0}§c」是保留字（/tpw 等指令的關鍵字），可改用 §a${1}§c 或 §a${2}"
   usage:
     # ${0}=子指令（mount 或 unmount）
     mount: "用法：/worlds ${0} 世界名稱"
@@ -149,8 +149,8 @@ err:
   # 世界資料夾與名稱檢查
   worldName: "世界名稱只能包含文字、數字、底線與連字號（1～64 字）。"
   pathUnsafe: "世界路徑不安全"
-  # ${0}=世界名稱
-  worldNotFound: "找不到完整世界：${0}"
+  # ${0}=世界名稱 ${1}=可用世界名稱（以、分隔）
+  worldNotFound: "找不到完整世界：${0}；可用世界：${1}"
   symlink: "不接受世界資料的符號連結"
   # ${0}=世界名稱
   targetExists: "目的世界已存在，未覆蓋：${0}"
@@ -195,12 +195,12 @@ log:
   # ${0}=世界數
   loadedWorlds: "§b載入世界共 §a${0} §b個"
   # ${0}=未完成的工作代號
-  recoveryPending: "§c有未完成的世界工作，停止修改。請檢查紀錄：§a${0}"
+  recoveryPending: "§c有未完成的世界工作，停止修改：§a${0}"
   # ${0}=世界名稱 ${1}=失敗原因
   mountFailed: "§e掛載失敗 §a${0}§e：${1}"
   unmountFailed: "§e卸載失敗 §a${0}§e：${1}"
   initFailed: "§c世界管理初始化失敗"
-  journalLost: "§c工作紀錄無法保存，停止自動還原；請停服核對世界與引用備份。"
+  journalLost: "§c工作紀錄無法保存，停止自動還原，需停服核對世界與引用備份。"
   # ${0}=未完成的工作代號
   rollbackFailed: "§c自動還原未完成，停止所有世界修改：§a${0}"
   jobFailed: "§c世界工作失敗"

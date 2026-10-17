@@ -17,7 +17,7 @@ public final class WorldPaths {
     }
     public Path existing(String name) throws IOException {
         Path path=world(name);
-        if(!Files.isDirectory(path,LinkOption.NOFOLLOW_LINKS) || !Files.isRegularFile(path.resolve("level.dat"),LinkOption.NOFOLLOW_LINKS)) throw new IOException(messages.text("err.worldNotFound",name));
+        if(!Files.isDirectory(path,LinkOption.NOFOLLOW_LINKS) || !Files.isRegularFile(path.resolve("level.dat"),LinkOption.NOFOLLOW_LINKS)) throw new IOException(messages.text("err.worldNotFound",name,String.join("、",names())));
         if(Files.isSymbolicLink(path.resolve("level.dat")) || Files.isSymbolicLink(path.resolve("db"))) throw new IOException(messages.text("err.symlink"));
         return path;
     }
