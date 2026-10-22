@@ -9,6 +9,7 @@ import dev.toka.i18n.Messages;
 final class Receipts {
     static final String ZERO = "zero";
     static final String PORTAL = "portal";
+    static final String LAND = "land";
     static final String KEY_PREFIX = "receipt.";
 
     private Receipts() {}

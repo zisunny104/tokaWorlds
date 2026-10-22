@@ -62,7 +62,28 @@ final class Links {
                 public void rollback() throws Exception {if(current().equals(before))return;if(!current().equals(after))throw new IllegalStateException(msg.text("err.homesModified"));persist(before);}
             });
         }
+        Plugin land=main.getServer().getPluginManager().getPlugin("tokaLand");
+        if(land!=null) {
+            if(!land.isEnabled()) throw new IllegalStateException(msg.text("err.landDisabled"));
+            int count=(Integer)call(land,"countClaimsInWorld",new Class[]{String.class},oldName);
+            changes.add(new Change(){
+                private boolean committed;
+                public String code(){return Receipts.LAND;}
+                public String[] args(){return new String[]{String.valueOf(count)};}
+                public String token(){return "land:"+oldName+"->"+newName;}
+                /** tokaLand refuses a new name that already holds claims, so a failed commit changes nothing. */
+                public void commit() throws Exception {rename(land,oldName,newName);committed=true;}
+                /** Only undoes what this change did; an uncommitted change must never move someone else's claims. */
+                public void rollback() throws Exception {if(committed){rename(land,newName,oldName);committed=false;}}
+            });
+        }
         return changes;
+    }
+    private static void rename(Plugin land,String from,String to) throws Exception {
+        @SuppressWarnings("unchecked") java.util.concurrent.CompletableFuture<Integer> work=
+            (java.util.concurrent.CompletableFuture<Integer>)call(land,"renameWorld",new Class[]{String.class,String.class},from,to);
+        try {work.get(30,java.util.concurrent.TimeUnit.SECONDS);}
+        catch(java.util.concurrent.ExecutionException e) {throw e.getCause() instanceof Exception ex?ex:new IllegalStateException(e.getCause());}
     }
     static void mounted(Main main,String name,boolean value) throws Exception {
         Plugin zero=main.getServer().getPluginManager().getPlugin("zero");

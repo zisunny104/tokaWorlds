@@ -2,6 +2,8 @@ package dev.toka.worlds;
 
 import cn.nukkit.Player;
 import cn.nukkit.command.*;
+import cn.nukkit.command.data.CommandParameter;
+import cn.nukkit.command.data.CommandParamType;
 import cn.nukkit.event.*;
 import cn.nukkit.event.player.*;
 import cn.nukkit.form.element.*;
@@ -51,6 +53,7 @@ public final class Main extends PluginBase implements Listener {
         messages=new Messages(getClass().getClassLoader(),getDataFolder().toPath(),getConfig().getString("language","zh-TW"),line->getLogger().warning(line));
         try {
             paths=new WorldPaths(Path.of(getServer().getDataPath(),"worlds"),messages);
+            suggestWorldCommands();
             getLogger().info(t("log.loadedWorlds",paths.names().size()));
             Path data=getDataFolder().toPath();
             Backend backend=Backend.valueOf(getConfig().getString("storage.backend","sqlite").toUpperCase(Locale.ROOT));
@@ -86,6 +89,20 @@ public final class Main extends PluginBase implements Listener {
                 for(String name:new ArrayList<>(mounts.keySet()))if(Boolean.FALSE.equals(mounts.get(name))) try {unmount(name);}catch(Exception e){getLogger().warning(t("log.unmountFailed",name,e.getMessage()));}
             },1);
         } catch(Exception error) {getLogger().error(t("log.initFailed"),error);getServer().getPluginManager().disablePlugin(this);}
+    }
+    private void suggestWorldCommands() throws java.io.IOException{
+        String[] names=paths.names().stream().filter(name->name.equals(name.toLowerCase(Locale.ROOT))).toArray(String[]::new);
+        Command registered=(Command)getCommand("worlds");
+        if(registered==null)return;
+        registered.getCommandParameters().clear();
+        CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend"});
+        registered.addCommandParameters("action",new CommandParameter[]{action});
+        CommandParameter world=names.length==0?CommandParameter.newType("world",CommandParamType.STRING):CommandParameter.newEnum("world",new cn.nukkit.command.data.CommandEnum("Worlds",names));
+        registered.addCommandParameters("mount",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"mount"}),world});
+        registered.addCommandParameters("unmount",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"unmount"}),world});
+        registered.addCommandParameters("rename",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"rename"}),world,CommandParameter.newType("new_name",CommandParamType.STRING),CommandParameter.newEnum("link_mode",true,new cn.nukkit.command.data.CommandEnum("LinkMode",new String[]{"--link","--no-link"}))});
+        registered.addCommandParameters("confirm",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"confirm"}),CommandParameter.newType("delay_seconds",true,CommandParamType.INT)});
+        registered.addCommandParameters("resend",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"resend"}),CommandParameter.newType("radius",true,CommandParamType.INT)});
     }
     private String owner(CommandSender sender){return sender instanceof Player p?p.getUniqueId().toString():"console";}
     private List<Operation> plan(CommandSender sender){return plans.computeIfAbsent(owner(sender),key->new ArrayList<>());}

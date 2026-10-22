@@ -26,7 +26,7 @@ help:
     - "§e/worlds list §7- §b列出世界與掛載狀態、線上玩家數"
     - "§e/worlds mount <世界> §7- §b把世界加入待辦：掛載"
     - "§e/worlds unmount <世界> §7- §b把世界加入待辦：卸載（不刪除地圖）"
-    - "§e/worlds rename <A> <B> [--link|--no-link] §7- §b把世界更名加入待辦；--link 連動 zero／tokaPortal，--no-link 只改地圖"
+    - "§e/worlds rename <A> <B> [--link|--no-link] §7- §b把世界更名加入待辦；--link 連動 zero／tokaPortal／tokaLand，--no-link 只改地圖"
     - "§e/worlds plan §7- §b查看自己的待辦列表"
     - "§e/worlds check §7- §b檢查全部待辦（排程前必檢查）"
     - "§e/worlds confirm [延遲秒數] §7- §b排程執行，延遲 0～3600 秒，預設 0"
@@ -48,7 +48,7 @@ msg:
     # 待辦列表結尾說明（多行；無參數）
     footer:
       - "§b更名時玩家先移到其他世界，完成後返回原座標；失敗即停止，已完成項目保留。"
-      - "§b連動範圍：zero 世界欄位、tokaPortal 2.0.0 住家。"
+      - "§b連動範圍：zero 世界欄位、tokaPortal 2.0.0 住家、tokaLand 領地。"
       - "§b目的資料夾已存在時不覆蓋。"
   # 已加入待辦；無參數
   added: "§a已加入待辦"
@@ -161,6 +161,7 @@ err:
   caseConflict: "目的名稱大小寫衝突：${0}"
   # 連動其他插件
   zeroDisabled: "zero 未啟用，無法驗證連動"
+  landDisabled: "tokaLand 未啟用，無法連動領地的世界名稱"
   portalVersion: "住家連動支援 tokaPortal 2.0.0／2.1.1／2.1.2；其他版本需驗證轉接器。"
   portalProvider: "不支援的住家資料提供者"
   homeSaveFailed: "住家儲存失敗"
@@ -182,7 +183,7 @@ ui:
   add:
     world: "選擇世界 A"
     newName: "新名稱 B"
-    link: "連動 zero／tokaPortal 世界引用"
+    link: "連動 zero／tokaPortal／tokaLand 世界引用"
     action: "操作"
     mount: "掛載"
     unmount: "卸載"
@@ -254,6 +255,7 @@ receipt:
   zero: "zero：${0} 筆區域／領地／傳送點／告示牌／方塊紀錄"
   # ${0}=住家數
   portal: "tokaPortal：${0} 個住家"
+  land: "tokaLand：${0} 塊領地"
 
 # ---------------------------------------------------------------------------
 # status.<名>：狀態字
