@@ -40,9 +40,11 @@ final class Links {
         }
         Plugin portal=main.getServer().getPluginManager().getPlugin("tokaPortal");
         if(portal!=null) {
-            if(!portal.isEnabled() || !Set.of("2.0.0","2.1.1","2.1.2").contains(portal.getDescription().getVersion())) throw new IllegalStateException(msg.text("err.portalVersion"));
+            if(!portal.isEnabled()) throw new IllegalStateException(msg.text("err.portalProvider"));
             Object provider=portal.getClass().getMethod("getProvider").invoke(null);
             if(provider==null || !provider.getClass().getName().equals("dev.toka.pl.tokaPortal.provider.BaseDataProvider")) throw new IllegalStateException(msg.text("err.portalProvider"));
+            // No version list: what the rename needs from tokaPortal is checked directly, and anything unexpected stops it before a change is made.
+            try {requirePortalShape(provider);} catch(Exception shape) {throw new IllegalStateException(msg.text("err.portalProvider"),shape);}
             ConfigSection document=(ConfigSection)field(provider,"document").get(provider);
             String before=JSON.toJson(document);
             JsonObject next=JsonParser.parseString(before).getAsJsonObject();int homes=0;
@@ -78,6 +80,14 @@ final class Links {
             });
         }
         return changes;
+    }
+    /** The home data must have the parts the rename reads and writes: a document with a "homes" list, a storage that saves it, and reload(boolean). */
+    private static void requirePortalShape(Object provider) throws Exception {
+        Object document=field(provider,"document").get(provider);
+        if(!(document instanceof ConfigSection)||JsonParser.parseString(JSON.toJson(document)).getAsJsonObject().getAsJsonArray("homes")==null) throw new IllegalStateException("homes");
+        Object storage=field(provider,"storage").get(provider);
+        storage.getClass().getMethod("save",ConfigSection.class);
+        provider.getClass().getMethod("reload",boolean.class);
     }
     private static void rename(Plugin land,String from,String to) throws Exception {
         @SuppressWarnings("unchecked") java.util.concurrent.CompletableFuture<Integer> work=

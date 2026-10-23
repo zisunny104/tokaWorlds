@@ -162,8 +162,7 @@ err:
   # 連動其他插件
   zeroDisabled: "zero 未啟用，無法驗證連動"
   landDisabled: "tokaLand 未啟用，無法連動領地的世界名稱"
-  portalVersion: "住家連動支援 tokaPortal 2.0.0／2.1.1／2.1.2；其他版本需驗證轉接器。"
-  portalProvider: "不支援的住家資料提供者"
+  portalProvider: "tokaPortal 的住家資料和預期不同，為了不弄壞住家，世界更名已停止"
   homeSaveFailed: "住家儲存失敗"
   homesChanged: "住家資料已變更，停止更名"
   homesModified: "住家資料被其他工作修改，需人工還原"
