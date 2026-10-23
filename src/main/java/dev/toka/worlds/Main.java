@@ -124,7 +124,6 @@ public final class Main extends PluginBase implements Listener {
     private void mark(String name,boolean mounted) throws Exception {
         Boolean old=mounts.put(name,mounted);
         try {saveState();}catch(Exception e){if(old==null)mounts.remove(name);else mounts.put(name,old);throw e;}
-        Links.mounted(this,name,mounted);
     }
     private void forget(String name) throws Exception {
         Boolean old=mounts.remove(name);
@@ -226,7 +225,7 @@ public final class Main extends PluginBase implements Listener {
             for(Links.Change change:changes){journal(log,record,"linking-"+attempted.size());attempted.add(change);change.commit();journal(log,record,"linked-"+attempted.size());}
             journal(log,record,"linked");timing.mark(t("log.timing.link"));
             journal(log,record,"saving-mounts");
-            forget(op.source());Links.mounted(this,op.source(),true);mark(op.target(),true);
+            forget(op.source());mark(op.target(),true);
             if(!mounted)unmount(op.target());
             timing.mark(t("log.timing.mounts"));
             // A completed journal must include the persisted new destination for returning players.

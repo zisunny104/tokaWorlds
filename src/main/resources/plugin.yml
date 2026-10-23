@@ -1,9 +1,9 @@
 name: tokaWorlds
 main: dev.toka.worlds.Main
-version: "1.2.2"
+version: "1.2.3"
 api: ["1.0.4"]
 load: POSTWORLD
-softdepend: [zero, tokaPortal, tokaLand]
+softdepend: [tokaPortal, tokaLand]
 commands:
   worlds:
     description: 世界掛載與批次更名管理

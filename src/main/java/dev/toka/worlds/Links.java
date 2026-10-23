@@ -28,16 +28,6 @@ final class Links {
     static List<Change> prepare(Main main,String oldName,String newName,boolean link) throws Exception {
         Messages msg=main.messages();
         List<Change> changes=new ArrayList<>(); if(!link) return changes;
-        Plugin zero=main.getServer().getPluginManager().getPlugin("zero");
-        if(zero!=null) {
-            if(!zero.isEnabled()) throw new IllegalStateException(msg.text("err.zeroDisabled"));
-            String token=(String)call(zero,"prepareWorldRename",new Class[]{String.class,String.class},oldName,newName);
-            int count=JsonParser.parseString(Files.readString(Path.of(token),StandardCharsets.UTF_8)).getAsJsonObject().getAsJsonArray("entries").size();
-            changes.add(new Change(){public String code(){return Receipts.ZERO;}public String[] args(){return new String[]{String.valueOf(count)};}
-                public String token(){return token;}
-                public void commit() throws Exception {call(zero,"commitWorldRename",new Class[]{String.class},token);}
-                public void rollback() throws Exception {call(zero,"rollbackWorldRename",new Class[]{String.class},token);}});
-        }
         Plugin portal=main.getServer().getPluginManager().getPlugin("tokaPortal");
         if(portal!=null) {
             if(!portal.isEnabled()) throw new IllegalStateException(msg.text("err.portalProvider"));
@@ -94,9 +84,5 @@ final class Links {
             (java.util.concurrent.CompletableFuture<Integer>)call(land,"renameWorld",new Class[]{String.class,String.class},from,to);
         try {work.get(30,java.util.concurrent.TimeUnit.SECONDS);}
         catch(java.util.concurrent.ExecutionException e) {throw e.getCause() instanceof Exception ex?ex:new IllegalStateException(e.getCause());}
-    }
-    static void mounted(Main main,String name,boolean value) throws Exception {
-        Plugin zero=main.getServer().getPluginManager().getPlugin("zero");
-        if(zero!=null && zero.isEnabled()) {call(zero,"setWorldMountedState",new Class[]{String.class,boolean.class},name,value);call(zero,"refreshWorldReferences",new Class[0]);}
     }
 }

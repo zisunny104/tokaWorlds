@@ -5,7 +5,7 @@
 ## 主要功能
 
 - **啟用／停用世界**：啟用時載入既有地圖，停用時關閉世界但保留地圖資料。
-- **批次更名**：一次排好多個世界的更名，一起執行；可連動 zero 的世界欄位及相容版本 tokaPortal 的住家。
+- **批次更名**：一次排好多個世界的更名，一起執行；可連動相容版本 tokaPortal 的住家與 tokaLand 的領地。
 - **待辦清單**：操作加入自己的待辦，檢查後排程執行，可延遲 0–3600 秒。
 - **玩家安全**：停用或更名前，先把玩家移到安全世界。更名完成後嘗試送回原座標；停用成功後玩家留在安全世界。目標世界已存在時不會被覆蓋。
 - **舊物品轉換**：玩家上線時，把舊核心留下、現在已無法辨識的物品換成指定的新物品，並留下紀錄。
@@ -25,7 +25,7 @@
 | `list` | `/worlds list` | 列出世界與啟用狀態、線上人數 | `tokaWorlds.admin` |
 | `mount` | `/worlds mount <世界>` | 加入待辦：啟用 | `tokaWorlds.admin` |
 | `unmount` | `/worlds unmount <世界>` | 加入待辦：停用世界，保留地圖 | `tokaWorlds.admin` |
-| `rename` | `/worlds rename <A> <B> [--link｜--no-link]` | 加入待辦：更名；`--link` 連動 zero／tokaPortal，`--no-link` 只改地圖資料夾 | `tokaWorlds.admin` |
+| `rename` | `/worlds rename <A> <B> [--link｜--no-link]` | 加入待辦：更名；`--link` 連動 tokaPortal／tokaLand，`--no-link` 只改地圖資料夾 | `tokaWorlds.admin` |
 | `plan`、`check` | `/worlds plan`、`/worlds check` | 查看待辦／檢查全部待辦 | `tokaWorlds.admin` |
 | `confirm` | `/worlds confirm [秒數]` | 排程執行，延遲 0–3600 秒，預設 0 | `tokaWorlds.admin` |
 | `clear`、`cancel` | `/worlds clear`、`/worlds cancel` | 清空自己的待辦／工作開始前取消排程 | `tokaWorlds.admin` |
@@ -47,7 +47,7 @@
 | --- | --- | --- |
 | `language` | `zh-TW` | 訊息語言 |
 | `reserved-names` | help、list、set、del、edit | 不可作為世界名稱的字 |
-| `link-on-rename` | `true` | 更名時是否預設連動 zero 與相容版本 tokaPortal 的資料 |
+| `link-on-rename` | `true` | 更名時是否預設連動相容版本 tokaPortal 與 tokaLand 的資料 |
 | `storage.backend` | `sqlite` | 儲存格式：`sqlite`、`json`、`yaml`；切換前需停服並搬遷資料，不能只改設定 |
 | `evacuation-world` | 空白 | 停用或更名時，玩家被移往的世界；空白使用預設世界 |
 | `slow-operation-ms` | `200` | 世界操作耗時超過此毫秒數時，後台耗時紀錄改用警告色 |
