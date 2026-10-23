@@ -87,6 +87,9 @@ public final class Main extends PluginBase implements Listener {
                 if(recovery!=null)return;
                 for(String name:new ArrayList<>(mounts.keySet()))if(Boolean.TRUE.equals(mounts.get(name))) try {mount(name);}catch(Exception e){getLogger().warning(t("log.mountFailed",name,e.getMessage()));}
                 for(String name:new ArrayList<>(mounts.keySet()))if(Boolean.FALSE.equals(mounts.get(name))) try {unmount(name);}catch(Exception e){getLogger().warning(t("log.unmountFailed",name,e.getMessage()));}
+                // worlds named in autoload-worlds are loaded at every start, whatever was recorded about them
+                for(String name:getConfig().getStringList("autoload-worlds"))
+                    if(getServer().getLevelByName(name)==null) try {mount(name);}catch(Exception e){getLogger().warning(t("log.mountFailed",name,e.getMessage()));}
             },1);
         } catch(Exception error) {getLogger().error(t("log.initFailed"),error);getServer().getPluginManager().disablePlugin(this);}
     }
