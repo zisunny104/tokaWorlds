@@ -101,7 +101,7 @@ public final class Main extends PluginBase implements Listener {
             if(getServer().getLevelByName(name)==null) try {mount(name);}catch(Exception e){getLogger().warning(t("log.mountFailed",name,e.getMessage()));}
         refreshCommands();
     }
-    /** Rebuilds the world name list of /worlds and sends it to the players again. */
+    /** Rebuilds the world name list of /world and sends it to the players again. */
     private void refreshCommands() {
         try {suggestWorldCommands();}catch(java.io.IOException e){getLogger().warning(t("log.suggestFailed",e.getMessage()));return;}
         for(Player player:getServer().getOnlinePlayers().values())player.sendCommandData();
@@ -113,7 +113,7 @@ public final class Main extends PluginBase implements Listener {
     private void suggestWorldCommands() throws java.io.IOException{
         suggested=paths.names();
         String[] names=suggested.stream().filter(name->name.equals(name.toLowerCase(Locale.ROOT))).toArray(String[]::new);
-        Command registered=(Command)getCommand("worlds");
+        Command registered=(Command)getCommand("world");
         if(registered==null)return;
         registered.getCommandParameters().clear();
         CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend","reload"});

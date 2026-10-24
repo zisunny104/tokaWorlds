@@ -21,7 +21,7 @@ reserved-names:
 
 # 世界更名時是否預設連動其他插件的世界資料（tokaPortal 2.0.0 以上的住家）。
 # 可填 true（連動，預設）或 false（只改地圖資料夾）。
-# 單次更名也可以用 /worlds rename A B --link 或 --no-link 個別指定。
+# 單次更名也可以用 /world rename A B --link 或 --no-link 個別指定。
 link-on-rename: true
 
 # 世界管理資料的儲存方式。

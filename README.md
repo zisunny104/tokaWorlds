@@ -14,27 +14,27 @@
 
 | 指令 | 用法 | 說明 |
 | --- | --- | --- |
-| `/worlds return` | `/worlds return` | 世界維護後若尚未回到原位置，手動回去 |
+| `/world return` | `/world return` | 世界維護後若尚未回到原位置，手動回去 |
 
 ## 管理指令
 
-輸入 `/worlds` 開啟管理視窗；主控台可使用下列指令。`/worlds help` 查看完整說明。
+輸入 `/world` 開啟管理視窗；主控台可使用下列指令。`/world help` 查看完整說明。
 
 | 指令 | 用法 | 說明 | 權限 |
 | --- | --- | --- | --- |
-| `list` | `/worlds list` | 列出世界與啟用狀態、線上人數 | `tokaWorlds.admin` |
-| `mount` | `/worlds mount <世界>` | 加入待辦：啟用 | `tokaWorlds.admin` |
-| `unmount` | `/worlds unmount <世界>` | 加入待辦：停用世界，保留地圖 | `tokaWorlds.admin` |
-| `rename` | `/worlds rename <A> <B> [--link｜--no-link]` | 加入待辦：更名；`--link` 連動 tokaPortal／tokaLand，`--no-link` 只改地圖資料夾 | `tokaWorlds.admin` |
-| `plan`、`check` | `/worlds plan`、`/worlds check` | 查看待辦／檢查全部待辦 | `tokaWorlds.admin` |
-| `confirm` | `/worlds confirm [秒數]` | 排程執行，延遲 0–3600 秒，預設 0 | `tokaWorlds.admin` |
-| `clear`、`cancel` | `/worlds clear`、`/worlds cancel` | 清空自己的待辦／工作開始前取消排程 | `tokaWorlds.admin` |
-| `resend` | `/worlds resend [半徑]` | 重送周圍連接方塊，只影響自己的畫面；半徑 1–48，預設 16 | `tokaWorlds.admin` |
-| `return` | `/worlds return` | 回到維護前的位置 | 所有人 |
+| `list` | `/world list` | 列出世界與啟用狀態、線上人數 | `tokaWorlds.admin` |
+| `mount` | `/world mount <世界>` | 加入待辦：啟用 | `tokaWorlds.admin` |
+| `unmount` | `/world unmount <世界>` | 加入待辦：停用世界，保留地圖 | `tokaWorlds.admin` |
+| `rename` | `/world rename <A> <B> [--link｜--no-link]` | 加入待辦：更名；`--link` 連動 tokaPortal／tokaLand，`--no-link` 只改地圖資料夾 | `tokaWorlds.admin` |
+| `plan`、`check` | `/world plan`、`/world check` | 查看待辦／檢查全部待辦 | `tokaWorlds.admin` |
+| `confirm` | `/world confirm [秒數]` | 排程執行，延遲 0–3600 秒，預設 0 | `tokaWorlds.admin` |
+| `clear`、`cancel` | `/world clear`、`/world cancel` | 清空自己的待辦／工作開始前取消排程 | `tokaWorlds.admin` |
+| `resend` | `/world resend [半徑]` | 重送周圍連接方塊，只影響自己的畫面；半徑 1–48，預設 16 | `tokaWorlds.admin` |
+| `return` | `/world return` | 回到維護前的位置 | 所有人 |
 
 | 權限 | 說明 | 預設 |
 | --- | --- | --- |
-| `tokaWorlds.use` | 使用 `/worlds return` | 所有人 |
+| `tokaWorlds.use` | 使用 `/world return` | 所有人 |
 | `tokaWorlds.admin` | 世界管理 | OP |
 
 建議流程：`rename A B` → `plan` → `check` → `confirm 30`。每位管理員有各自的待辦；伺服器預設世界不能在線停用或更名；執行中途失敗會停止，已完成的項目保留；重新啟動後待辦需重新檢查與確認。
@@ -57,6 +57,6 @@
 
 ## 疑難排解
 
-- **為什麼 `confirm` 說尚未檢查？** 請先執行 `/worlds check`，待辦有變動後需重新檢查。
+- **為什麼 `confirm` 說尚未檢查？** 請先執行 `/world check`，待辦有變動後需重新檢查。
 - **更名連動無法通過檢查？** 確認該次更名使用 `--link`，或 `link-on-rename` 為 `true`。住家連動僅支援 tokaPortal 2.0.0、2.1.1、2.1.2。使用其他版本時，需更新轉接程式，或以 `--no-link` 只更名世界。
-- **更名後玩家沒有被送回原位？** 世界恢復且服務正常後，可輸入 `/worlds return`。停用世界成功時不會保留該世界的返回紀錄。
+- **更名後玩家沒有被送回原位？** 世界恢復且服務正常後，可輸入 `/world return`。停用世界成功時不會保留該世界的返回紀錄。

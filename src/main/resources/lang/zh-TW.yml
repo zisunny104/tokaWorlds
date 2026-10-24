@@ -12,32 +12,32 @@ cmd:
   worlds:
     # 用法，未知子指令時顯示；無參數
     usage:
-      - "§e/worlds list §7| §e/worlds mount §aA §7| §e/worlds unmount §aA §7| §e/worlds rename §aA B §7[--link|--no-link]"
-      - "§e/worlds plan §7| §e/worlds check §7| §e/worlds confirm §7[秒] | §e/worlds clear §7| §e/worlds cancel §7| §e/worlds resend §7[半徑] | §e/worlds reload"
-      - "§b完整說明：§e/worlds help §7[頁]；遊戲內 §e/worlds §b開啟管理視窗。"
+      - "§e/world list §7| §e/world mount §aA §7| §e/world unmount §aA §7| §e/world rename §aA B §7[--link|--no-link]"
+      - "§e/world plan §7| §e/world check §7| §e/world confirm §7[秒] | §e/world clear §7| §e/world cancel §7| §e/world resend §7[半徑] | §e/world reload"
+      - "§b完整說明：§e/world help §7[頁]；遊戲內 §e/world §b開啟管理視窗。"
 
 # ---------------------------------------------------------------------------
 # help.<指令>：/指令 help 的多行說明（第一行標題）
 # ---------------------------------------------------------------------------
 help:
-  # /worlds help [頁]：第 1 頁是最常用的，之後每頁以一行說明主題。標題由 msg.helpTitle 產生
+  # /world help [頁]：第 1 頁是最常用的，之後每頁以一行說明主題。標題由 msg.helpTitle 產生
   worlds:
-    - "§e/worlds §b開啟管理視窗（主控台顯示說明）"
-    - "§e/worlds list §b列出世界、掛載狀態與玩家數"
-    - "§e/worlds mount <世界> §b加入待辦：掛載"
-    - "§e/worlds unmount <世界> §b加入待辦：卸載（不刪除地圖）"
-    - "§e/worlds rename <A> <B> [--link|--no-link] §b加入待辦：更名；--link 連動 tokaPortal 與 tokaLand"
-    - "§e/worlds return §b維護後尚未返回時，回到原位置（玩家可用）"
-    - "§e/worlds help [頁] §b顯示說明"
+    - "§e/world §b開啟管理視窗（主控台顯示說明）"
+    - "§e/world list §b列出世界、掛載狀態與玩家數"
+    - "§e/world mount <世界> §b加入待辦：掛載"
+    - "§e/world unmount <世界> §b加入待辦：卸載（不刪除地圖）"
+    - "§e/world rename <A> <B> [--link|--no-link] §b加入待辦：更名；--link 連動 tokaPortal 與 tokaLand"
+    - "§e/world return §b維護後尚未返回時，回到原位置（玩家可用）"
+    - "§e/world help [頁] §b顯示說明"
     - "§b待辦與排程："
-    - "§e/worlds plan §b查看自己的待辦"
-    - "§e/worlds check §b檢查全部待辦，排程前必做"
-    - "§e/worlds confirm [秒] §b排程執行，延遲 0～3600 秒，預設 0"
-    - "§e/worlds clear §b清空自己的待辦"
-    - "§e/worlds cancel §b工作開始前取消排程，待辦保留"
+    - "§e/world plan §b查看自己的待辦"
+    - "§e/world check §b檢查全部待辦，排程前必做"
+    - "§e/world confirm [秒] §b排程執行，延遲 0～3600 秒，預設 0"
+    - "§e/world clear §b清空自己的待辦"
+    - "§e/world cancel §b工作開始前取消排程，待辦保留"
     - "§b其他："
-    - "§e/worlds resend [半徑] §b重送周圍的樓梯、柵欄、玻璃片、牆、門與柵欄門（1～48，預設 16），只影響自己的畫面"
-    - "§e/worlds reload §b重新讀取設定與語系"
+    - "§e/world resend [半徑] §b重送周圍的樓梯、柵欄、玻璃片、牆、門與柵欄門（1～48，預設 16），只影響自己的畫面"
+    - "§e/world reload §b重新讀取設定與語系"
 
 # ---------------------------------------------------------------------------
 # msg.<區>.<名>：玩家（或指令執行者）看到的訊息
@@ -92,11 +92,11 @@ msg:
     busy: "§e世界維護中。"
   return:
     # 原世界尚未恢復；無參數
-    notRestored: "§e原世界尚未恢復，掛載後可用 §a/worlds return§e 返回。"
+    notRestored: "§e原世界尚未恢復，掛載後可用 §a/world return§e 返回。"
     # 已返回；無參數
     done: "§a世界維護完成，已返回原位置。"
     # 返回傳送被拒絕；無參數
-    rejected: "§e返回傳送被拒絕，可用 §a/worlds return§e 再試。"
+    rejected: "§e返回傳送被拒絕，可用 §a/world return§e 再試。"
   legacy:
     # 玩家上線時背包的舊編號物品已被換成現在的物品；無參數
     converted: "§e背包內的舊版物品已換成現行版本。"
@@ -142,7 +142,7 @@ err:
   evacuationConflict: "移出玩家用的世界不能同時排入卸載／更名"
   renameLoadFailed: "更名後世界無法載入"
   alreadyStarted: "工作已開始，無法中途取消"
-  notChecked: "尚未檢查，需先執行 /worlds check"
+  notChecked: "尚未檢查，需先執行 /world check"
   delayRange: "延遲秒數範圍為 0～3600"
   permissionRemoved: "執行權限已移除"
   # ${0}=玩家名稱
@@ -157,9 +157,9 @@ err:
   reservedName: "「§a${0}§c」是保留字（/tpw 等指令的關鍵字），可改用 §a${1}§c 或 §a${2}"
   usage:
     # ${0}=子指令（mount 或 unmount）
-    mount: "用法：/worlds ${0} 世界名稱"
-    rename: "用法：/worlds rename A B [--link|--no-link]"
-    confirm: "用法：/worlds confirm [延遲秒數]"
+    mount: "用法：/world ${0} 世界名稱"
+    rename: "用法：/world rename A B [--link|--no-link]"
+    confirm: "用法：/world confirm [延遲秒數]"
   # 世界資料夾與名稱檢查
   worldName: "世界名稱只能包含文字、數字、底線與連字號（1～64 字）。"
   pathUnsafe: "世界路徑不安全"
