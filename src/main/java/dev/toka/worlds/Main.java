@@ -495,11 +495,12 @@ public final class Main extends PluginBase implements Listener {
     }
     private void showSearch(Player player) {
         FormWindowCustom form=new FormWindowCustom(t("ui.search.title"));
+        form.addElement(new cn.nukkit.form.element.ElementHeader(t("ui.search.title")));
         form.addElement(new ElementInput(t("ui.search.query"),t("ui.search.hint"),queries.getOrDefault(player.getUniqueId(),"")));
         open(player,form,event-> {
             try {
                 if(event.wasClosed()||!(event.getResponse() instanceof FormResponseCustom answer)){showMenu(player,0);return;}
-                String query=answer.getInputResponse(0)==null?"":answer.getInputResponse(0).strip();
+                String query=answer.getInputResponse(1)==null?"":answer.getInputResponse(1).strip();
                 if(query.isEmpty())queries.remove(player.getUniqueId());else queries.put(player.getUniqueId(),query.length()>64?query.substring(0,64):query);
                 showMenu(player,0);
             } catch(Exception error) {player.sendMessage(t("err.show",error.getMessage()));}
@@ -517,7 +518,9 @@ public final class Main extends PluginBase implements Listener {
         Level level=getServer().getLevelByName(name);
         boolean autoload=getConfig().getStringList("autoload-worlds").contains(name);
         FormWindowCustom form=new FormWindowCustom(t("ui.world.title",name));
+        form.addElement(new cn.nukkit.form.element.ElementHeader(name));
         form.addElement(new ElementLabel(level==null?t("ui.world.stateOff"):t("ui.world.stateOn",String.format("%,d",level.getPlayers().size()))));
+        form.addElement(new cn.nukkit.form.element.ElementDivider());
         form.addElement(new ElementDropdown(t("ui.world.action"),List.of(t("ui.world.none"),t("ui.add.mount"),t("ui.add.unmount"),t("ui.menu.rename")),0));
         form.addElement(new ElementInput(t("ui.add.newName"),t("ui.world.newNameHint")));
         form.addElement(new ElementToggle(t("ui.add.link"),getConfig().getBoolean("link-on-rename",true)));
@@ -525,10 +528,10 @@ public final class Main extends PluginBase implements Listener {
         open(player,form,event-> {
             try {
                 if(event.wasClosed()||!(event.getResponse() instanceof FormResponseCustom answer)){showMenu(player,0);return;}
-                var chosen=answer.getDropdownResponse(1);
+                var chosen=answer.getDropdownResponse(3);
                 int action=chosen==null?0:chosen.getElementID();
-                String target=answer.getInputResponse(2)==null?"":answer.getInputResponse(2).strip();
-                boolean link=answer.getToggleResponse(3),auto=answer.getToggleResponse(4);
+                String target=answer.getInputResponse(4)==null?"":answer.getInputResponse(4).strip();
+                boolean link=answer.getToggleResponse(5),auto=answer.getToggleResponse(6);
                 if(auto!=autoload){setAutoload(name,auto);player.sendMessage(t(auto?"msg.autoloadOn":"msg.autoloadOff",name));}
                 switch(action) {
                     case 1 -> {addOperation(player,new Operation("mount",name,"",false));player.sendMessage(t("msg.added"));}
@@ -565,25 +568,28 @@ public final class Main extends PluginBase implements Listener {
     }
     private void showConfirm(Player player) {
         FormWindowCustom form=new FormWindowCustom(t("ui.confirm.title"));
+        form.addElement(new cn.nukkit.form.element.ElementHeader(t("ui.confirm.title")));
         form.addElement(new ElementLabel(describe(planView(player))));
+        form.addElement(new cn.nukkit.form.element.ElementDivider());
         form.addElement(new ElementSlider(t("ui.confirm.delay"),0,3600,5,30));
         form.addElement(new ElementToggle(t("ui.confirm.toggle"),false));
         open(player,form,event-> {
             try {
                 if(event.wasClosed()||!(event.getResponse() instanceof FormResponseCustom answer))return;
-                if(answer.getToggleResponse(2))execute(player,Math.max(0,Math.min(3600,Math.round(answer.getSliderResponse(1)))));
+                if(answer.getToggleResponse(4))execute(player,Math.max(0,Math.min(3600,Math.round(answer.getSliderResponse(3)))));
                 else showPlan(player);
             } catch(Exception error) {player.sendMessage(t("err.show",error.getMessage()));}
         });
     }
     private void showResend(Player player) {
         FormWindowCustom form=new FormWindowCustom(t("ui.resend.title"));
+        form.addElement(new cn.nukkit.form.element.ElementHeader(t("ui.resend.title")));
         form.addElement(new ElementLabel(t("ui.resend.body")));
         form.addElement(new ElementSlider(t("ui.resend.radius"),1,48,1,16));
         open(player,form,event-> {
             try {
                 if(event.wasClosed()||!(event.getResponse() instanceof FormResponseCustom answer))return;
-                startResend(player,Math.max(1,Math.min(48,Math.round(answer.getSliderResponse(1)))));
+                startResend(player,Math.max(1,Math.min(48,Math.round(answer.getSliderResponse(2)))));
             } catch(Exception error) {player.sendMessage(t("err.show",error.getMessage()));}
         });
     }
