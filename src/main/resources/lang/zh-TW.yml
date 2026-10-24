@@ -13,28 +13,31 @@ cmd:
     # 用法，未知子指令時顯示；無參數
     usage:
       - "§e/worlds list §7| §e/worlds mount §aA §7| §e/worlds unmount §aA §7| §e/worlds rename §aA B §7[--link|--no-link]"
-      - "§7| §e/worlds plan §7| §e/worlds check §7| §e/worlds confirm §7[秒] | §e/worlds clear §7| §e/worlds cancel §7| §e/worlds resend §7[半徑]"
-      - "§7輸入 §e/worlds help §7查看完整說明；遊戲內輸入 §e/worlds §7可開啟管理視窗。"
+      - "§e/worlds plan §7| §e/worlds check §7| §e/worlds confirm §7[秒] | §e/worlds clear §7| §e/worlds cancel §7| §e/worlds resend §7[半徑] | §e/worlds reload"
+      - "§b完整說明：§e/worlds help §7[頁]；遊戲內 §e/worlds §b開啟管理視窗。"
 
 # ---------------------------------------------------------------------------
 # help.<指令>：/指令 help 的多行說明（第一行標題）
 # ---------------------------------------------------------------------------
 help:
+  # /worlds help [頁]：第 1 頁是最常用的，之後每頁以一行說明主題。標題由 msg.helpTitle 產生
   worlds:
-    - "§6=== §f§l世界管理 說明§r §6==="
-    - "§e/worlds §7- §b遊戲內開啟管理視窗（主控台顯示本說明）"
-    - "§e/worlds list §7- §b列出世界與掛載狀態、線上玩家數"
-    - "§e/worlds mount <世界> §7- §b把世界加入待辦：掛載"
-    - "§e/worlds unmount <世界> §7- §b把世界加入待辦：卸載（不刪除地圖）"
-    - "§e/worlds rename <A> <B> [--link|--no-link] §7- §b把世界更名加入待辦；--link 連動 tokaPortal／tokaLand，--no-link 只改地圖"
-    - "§e/worlds plan §7- §b查看自己的待辦列表"
-    - "§e/worlds check §7- §b檢查全部待辦（排程前必檢查）"
-    - "§e/worlds confirm [延遲秒數] §7- §b排程執行，延遲 0～3600 秒，預設 0"
-    - "§e/worlds clear §7- §b清空自己的待辦"
-    - "§e/worlds cancel §7- §b工作開始前取消排程，待辦保留"
-    - "§e/worlds resend [半徑] §7- §b把周圍的樓梯、柵欄、玻璃片、牆、門與柵欄門重新送給自己（半徑 1～48，預設 16；只影響自己的畫面）"
-    - "§e/worlds return §7- §b維護後尚未返回時，手動回到原位置（玩家可用）"
-    - "§e/worlds help §7- §b顯示本說明"
+    - "§e/worlds §b開啟管理視窗（主控台顯示說明）"
+    - "§e/worlds list §b列出世界、掛載狀態與玩家數"
+    - "§e/worlds mount <世界> §b加入待辦：掛載"
+    - "§e/worlds unmount <世界> §b加入待辦：卸載（不刪除地圖）"
+    - "§e/worlds rename <A> <B> [--link|--no-link] §b加入待辦：更名；--link 連動 tokaPortal 與 tokaLand"
+    - "§e/worlds return §b維護後尚未返回時，回到原位置（玩家可用）"
+    - "§e/worlds help [頁] §b顯示說明"
+    - "§b待辦與排程："
+    - "§e/worlds plan §b查看自己的待辦"
+    - "§e/worlds check §b檢查全部待辦，排程前必做"
+    - "§e/worlds confirm [秒] §b排程執行，延遲 0～3600 秒，預設 0"
+    - "§e/worlds clear §b清空自己的待辦"
+    - "§e/worlds cancel §b工作開始前取消排程，待辦保留"
+    - "§b其他："
+    - "§e/worlds resend [半徑] §b重送周圍的樓梯、柵欄、玻璃片、牆、門與柵欄門（1～48，預設 16），只影響自己的畫面"
+    - "§e/worlds reload §b重新讀取設定與語系"
 
 # ---------------------------------------------------------------------------
 # msg.<區>.<名>：玩家（或指令執行者）看到的訊息
@@ -50,6 +53,13 @@ msg:
       - "§b更名時玩家先移到其他世界，完成後返回原座標；失敗即停止，已完成項目保留。"
       - "§b連動範圍：tokaPortal 2.0.0 住家、tokaLand 領地。"
       - "§b目的資料夾已存在時不覆蓋。"
+  # 說明頁標題。${0}=頁碼 ${1}=總頁數
+  helpTitle: "§6=== §f§l世界管理 說明§r §6(§a${0}§6/§a${1}§6) ==="
+  # 設定與語系已重新讀取；無參數
+  reloaded: "§a已重新讀取設定與語系"
+  # ${0}=世界名稱
+  autoloadOn: "§b世界 §a${0} §b之後每次啟動都會載入"
+  autoloadOff: "§b世界 §a${0} §b不再於每次啟動時載入"
   # 已加入待辦；無參數
   added: "§a已加入待辦"
   # 待辦已清空；無參數
@@ -97,6 +107,7 @@ msg:
 err:
   # 把錯誤原因顯示給玩家或指令執行者。${0}=錯誤原因
   show: "§c${0}"
+  noPermission: "§c你沒有管理世界的權限。"
   # 一般錯誤
   legacyDataFound: "偵測到舊資料，需停服執行 StorageCli import-legacy 匯入。"
   otherFormat: "其他儲存格式已有資料，需先離線 migrate。"
@@ -170,26 +181,79 @@ err:
 # ui.<表單>.<名>：表單標題、按鈕、欄位（表單內不加顏色）
 # ---------------------------------------------------------------------------
 ui:
+  common:
+    back: "返回"
+    prev: "上一頁"
+    next: "下一頁"
+    close: "§c關閉"
+    cancel: "§c取消"
   menu:
     title: "世界管理"
-    rename: "新增世界更名"
-    mount: "新增掛載／卸載"
-    check: "檢查全部並排程"
-    clear: "清空待辦"
-    list: "列出世界"
-    close: "關閉"
+    # ${0}=頁碼 ${1}=總頁數
+    titlePage: "世界管理 (${0}/${1})"
+    # ${0}=世界數 ${1}=掛載中的世界數
+    content: "共 ${0} 個世界，掛載中 ${1} 個"
+    # ${0}=搜尋字 ${1}=符合數
+    filter: "搜尋「${0}」：${1} 個符合"
+    # ${0}=待辦項數
+    plan: "待辦列表（${0}）"
+    resend: "重送周圍方塊"
+    return: "返回維護前位置"
+    # 世界按鈕，第二行是狀態。${0}=世界名稱 ${1}=線上玩家數
+    worldOn: "${0}\n掛載中・${1} 人"
+    worldOff: "${0}\n未掛載"
+    search: "搜尋世界"
+    help: "說明"
+    rename: "更名"
+  search:
+    title: "搜尋世界"
+    query: "關鍵字"
+    hint: "世界名稱的一部分，留空顯示全部"
+  help:
+    title: "世界管理說明"
+    worlds:
+      title: "世界"
+      body: "點世界按鈕，選動作後送出：掛載、卸載或更名會加入待辦，不會馬上執行。\n「每次啟動都載入」會寫進 config.yml 的 autoload-worlds。"
+    plan:
+      title: "待辦與排程"
+      body: "待辦列表按「檢查並排程」，通過後選延遲秒數並勾選確認，就會排程執行。\n工作開始前可取消排程，待辦會保留。"
+    other:
+      title: "其他"
+      body: "重送周圍方塊：把樓梯、柵欄、牆、門重新送給自己，只影響自己的畫面。\n維護後沒有自動返回時，按「返回維護前位置」。"
+  world:
+    # ${0}=世界名稱
+    title: "世界 ${0}"
+    # ${0}=線上玩家數
+    stateOn: "掛載中，線上 ${0} 人"
+    stateOff: "未掛載"
+    action: "動作"
+    none: "不排入工作"
+    newNameHint: "更名時填新名稱"
+    autoload: "每次啟動都載入"
   add:
-    world: "選擇世界 A"
     newName: "新名稱 B"
     link: "連動 tokaPortal／tokaLand 世界引用"
-    action: "操作"
     mount: "掛載"
     unmount: "卸載"
+  unmount:
+    title: "確認卸載"
+    # ${0}=世界名稱 ${1}=線上玩家數
+    body: "把 ${0} 加入卸載待辦？目前有 ${1} 人在裡面，執行時會先被移到其他世界。"
+    confirm: "加入待辦"
+  plan:
+    title: "待辦列表"
+    empty: "目前沒有待辦"
+    check: "檢查並排程"
+    clear: "清空待辦"
+    cancel: "取消排程"
   confirm:
     title: "排程確認"
-    delay: "延遲秒數（0～3600）"
-    placeholder: "例如 30"
+    delay: "延遲秒數"
     toggle: "確認上述全部項目並執行"
+  resend:
+    title: "重送周圍方塊"
+    body: "只影響你自己的畫面"
+    radius: "半徑"
 
 # ---------------------------------------------------------------------------
 # log.<名>：後台文字（不加方括號標籤；文字 §b、數字 §a、警告 §e、錯誤 §c）
@@ -203,7 +267,11 @@ log:
   mountFailed: "§e掛載失敗 §a${0}§e：${1}"
   unmountFailed: "§e卸載失敗 §a${0}§e：${1}"
   initFailed: "§c世界管理初始化失敗"
-  journalLost: "§c工作紀錄無法保存，停止自動還原，需停服核對世界與引用備份。"
+  journalLost: "§c工作紀錄寫入失敗，不自動還原，請停服核對世界與備份"
+  # ${0}=操作名稱 ${1}=世界（更名為 A → B）
+  opPass: "§b世界工作完成 §a${0} ${1}"
+  # ${0}=失敗原因
+  suggestFailed: "§e指令世界名單更新失敗：§a${0}"
   # ${0}=未完成的工作代號
   rollbackFailed: "§c自動還原未完成，停止所有世界修改：§a${0}"
   jobFailed: "§c世界工作失敗"
