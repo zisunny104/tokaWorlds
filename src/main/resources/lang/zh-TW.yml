@@ -109,9 +109,7 @@ err:
   show: "§c${0}"
   noPermission: "§c你沒有管理世界的權限。"
   # 一般錯誤
-  legacyDataFound: "偵測到舊資料，需停服執行 StorageCli import-legacy 匯入。"
   otherFormat: "其他儲存格式已有資料，需先離線 migrate。"
-  legacyNotImported: "新儲存未含舊資料，需先離線匯入。"
   otherFormatEmpty: "其他格式已有資料但目前格式為空，停止初始化，需離線遷移。"
   storageNotReady: "儲存未就緒，停止世界管理"
   busy: "已有世界工作排程／執行中"
@@ -341,23 +339,9 @@ status:
 # cli.<名>：離線工具 StorageCli 的輸出（純文字，不加色碼；PASS 標記行維持英文代碼）
 # ---------------------------------------------------------------------------
 cli:
-  usage: "先完整停服。import-legacy <舊插件資料夾> <sqlite|json|yaml> <新儲存資料夾> <備份資料夾>；migrate <來源格式> <來源儲存資料夾> <目標格式> <新儲存資料夾> <備份資料夾>；inspect <格式> <儲存資料夾>"
-  importArgs: "import-legacy 需要來源、格式、新目的地與備份資料夾"
-  sourceNotPlain: "來源必須是一般插件資料夾"
-  targetInside: "目的地必須在來源資料夾外，驗證後才人工移入 storage"
-  backupInside: "備份必須在來源與目的地外"
-  backupVerify: "來源備份驗證失敗"
-  importVerify: "匯入讀回驗證失敗"
-  sourceChanged: "來源資料在匯入期間改變，停止啟用目的地"
+  usage: "先完整停服。migrate <來源格式> <來源儲存資料夾> <目標格式> <新儲存資料夾> <備份資料夾>；inspect <格式> <儲存資料夾>"
   migrateArgs: "migrate 需要來源格式／路徑、目標格式／新路徑、備份資料夾"
   inspectArgs: "inspect 需要格式與路徑"
   unknown: "未知離線指令"
   # ${0}=檔案路徑
   noStoreFile: "來源儲存檔案不存在或為連結：${0}"
-  noConfig: "缺少一般 config.yml 來源"
-  badConfig: "無效 config.yml"
-  # ${0}=設定 key
-  badList: "無效設定列表：${0}"
-  refuseSource: "拒絕來源連結"
-  # ${0}=檔案路徑
-  refuseFile: "拒絕非一般來源檔案：${0}"

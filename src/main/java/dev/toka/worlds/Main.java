@@ -64,15 +64,11 @@ public final class Main extends PluginBase implements Listener {
             Backend backend=Backend.valueOf(getConfig().getString("storage.backend","sqlite").toUpperCase(Locale.ROOT));
             Path active=storagePath(data,backend);
             if(!Files.exists(active)) {
-                if(WorldState.hasLegacy(data,getConfig().getStringList("mounted-worlds"),getConfig().getStringList("unmounted-worlds")))
-                    throw new IllegalStateException(t("err.legacyDataFound"));
                 for(Backend other:Backend.values())if(other!=backend&&Files.exists(storagePath(data,other)))
                     throw new IllegalStateException(t("err.otherFormat"));
             }
             store=DocumentStore.open(new StoreConfig(backend,active,1));
             Optional<JsonObject> loaded=store.load("state");
-            if(loaded.isEmpty()&&WorldState.hasLegacy(data,getConfig().getStringList("mounted-worlds"),getConfig().getStringList("unmounted-worlds")))
-                throw new IllegalStateException(t("err.legacyNotImported"));
             if(loaded.isEmpty())for(Backend other:Backend.values())if(other!=backend&&Files.exists(storagePath(data,other)))
                 throw new IllegalStateException(t("err.otherFormatEmpty"));
             state=WorldState.validate(loaded.orElseGet(WorldState::empty));

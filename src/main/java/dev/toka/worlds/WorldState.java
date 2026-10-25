@@ -1,7 +1,6 @@
 package dev.toka.worlds;
 
 import com.google.gson.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
@@ -46,39 +45,5 @@ final class WorldState {
                 throw new IllegalArgumentException("Invalid mount state");
         }
         return state;
-    }
-    static boolean hasLegacy(Path data,Collection<String> mounted,Collection<String> unmounted) throws Exception {
-        if(!mounted.isEmpty()||!unmounted.isEmpty()||Files.exists(data.resolve("pending-returns.json")))return true;
-        for(String section:List.of("plans","operations")) {
-            Path dir=data.resolve(section);if(Files.isDirectory(dir))try(var files=Files.list(dir)) {
-                if(files.anyMatch(p->p.getFileName().toString().endsWith(".json")))return true;
-            }
-        }
-        return false;
-    }
-    static JsonObject importLegacy(Path data,Collection<String> mounted,Collection<String> unmounted) throws Exception {
-        JsonObject state=empty();
-        for(String section:List.of("plans","operations")) {
-            Path dir=data.resolve(section);if(!Files.isDirectory(dir))continue;
-            if(Files.isSymbolicLink(dir))throw new IllegalArgumentException("Refusing linked source folder: "+dir);
-            try(var files=Files.list(dir)) {
-                for(Path p:files.filter(f->f.getFileName().toString().endsWith(".json")).sorted().toList()) {
-                    if(Files.isSymbolicLink(p)||!Files.isRegularFile(p))throw new IllegalArgumentException("Refusing non-regular source file: "+p);
-                    String key=p.getFileName().toString().replaceFirst("\\.json$","");
-                    state.getAsJsonObject(section.equals("plans")?"plans":"journals").add(key,JsonParser.parseString(Files.readString(p,StandardCharsets.UTF_8)));
-                }
-            }
-        }
-        Path returns=data.resolve("pending-returns.json");
-        if(Files.exists(returns)) {
-            if(Files.isSymbolicLink(returns)||!Files.isRegularFile(returns))throw new IllegalArgumentException("Refusing non-regular return source file");
-            state.add("returns",JsonParser.parseString(Files.readString(returns,StandardCharsets.UTF_8)));
-        }
-        for(String name:mounted)state.getAsJsonObject("mounts").addProperty(name,true);
-        for(String name:unmounted) {
-            if(state.getAsJsonObject("mounts").has(name))throw new IllegalArgumentException("Conflicting legacy mount settings: "+name);
-            state.getAsJsonObject("mounts").addProperty(name,false);
-        }
-        return validate(state);
     }
 }
