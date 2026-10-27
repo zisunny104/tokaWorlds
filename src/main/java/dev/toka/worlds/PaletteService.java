@@ -53,10 +53,11 @@ final class PaletteService {
     /** Every second: count how long the server has been empty, then give each configured world one step. */
     private void tick() {
         Server server = plugin.getServer();
-        if (!server.getOnlinePlayers().isEmpty()) { emptyTicks = 0; return; }
+        boolean online = !server.getOnlinePlayers().isEmpty();
+        // with players on, the scan goes on at a lower speed when the server is healthy (run-with-players); otherwise it waits until nobody is on
+        if (online && !plugin.getConfig().getBoolean("palette-repair.run-with-players", true)) { emptyTicks = 0; return; }
         if (paused) return;
-        emptyTicks++;
-        if (emptyTicks < config("idle-seconds", 10)) return;
+        if (!online) { emptyTicks++; if (emptyTicks < config("idle-seconds", 10)) return; } else emptyTicks = 0;
         if (server.getTicksPerSecond() < config("min-tps", 18)) return;
         // worlds go in the configured order, one at a time; a world that is not loaded is skipped
         for (String world : worlds()) {
@@ -83,10 +84,11 @@ final class PaletteService {
             info.accept(m.text("log.palette.resumed", world, progress.index(), before));
         }
         if (job.done()) { finish(world, level, job); return; }
-        int max = Math.max(1, config("chunks-per-second", 32));
+        boolean playersOnline = !plugin.getServer().getOnlinePlayers().isEmpty();
+        int max = Math.max(1, playersOnline ? config("chunks-per-second-online", 8) : config("chunks-per-second", 32));
         if (budget < 1 || budget > max) budget = max;
         long start = System.nanoTime();
-        job.step(budget, () -> !plugin.getServer().getOnlinePlayers().isEmpty());
+        job.step(budget, config("lookups-per-step", 400), () -> false);
         long took = (System.nanoTime() - start) / 1_000_000;
         elapsedMs.merge(world, took, Long::sum);
         // keep one step under the tick budget: halve when slow, creep back up when fast
@@ -145,17 +147,25 @@ final class PaletteService {
         LevelProvider provider = level.getProvider();
         int dimension = level.getDimension();
         info.accept(m.text("log.palette.listing", world));
+        int radius = Math.max(1, Math.min(1000, config("radius-chunks", 160)));
         Thread thread = new Thread(() -> {
             try {
-                long[] coords = BiomeService.Scanner.keys(provider, dimension);
+                // Every position within the radius around the origin, nearest first. The database keys are not listed: that needs more memory
+                // than the server has, and a position without a chunk costs one look-up when the job meets it.
+                long[] coords = new long[(2 * radius + 1) * (2 * radius + 1)];
+                int at = 0;
+                for (int ring = 0; ring <= radius; ring++) {
+                    for (int x = -ring; x <= ring; x++) {
+                        for (int z = -ring; z <= ring; z++) {
+                            if (Math.max(Math.abs(x), Math.abs(z)) == ring) coords[at++] = BiomeRepair.pack(x, z);
+                        }
+                    }
+                }
                 BiomeRepair.writeList(list(world), coords);
                 info.accept(m.text("log.palette.found", world, coords.length));
             } catch (Throwable error) {
                 finished.add(world);
-                Throwable cause = error instanceof java.lang.reflect.InvocationTargetException && error.getCause() != null ? error.getCause() : error;
-                StringBuilder where = new StringBuilder(String.valueOf(cause));
-                for (StackTraceElement frame : Arrays.copyOf(cause.getStackTrace(), Math.min(4, cause.getStackTrace().length))) where.append(" at ").append(frame);
-                warn.accept(m.text("log.palette.scanFailed", world, where.toString()));
+                warn.accept(m.text("log.palette.scanFailed", world, String.valueOf(error)));
             } finally { scanning.remove(world); }
         }, "toka-palette-scan");
         thread.setDaemon(true);

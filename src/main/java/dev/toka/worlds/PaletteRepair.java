@@ -35,15 +35,21 @@ final class PaletteRepair {
         boolean done() { return progress.index() >= list.length; }
 
         /** Returns the number of chunks examined. */
-        int step(int budget, BooleanSupplier playersOnline) throws IOException {
-            int examined = 0;
-            while (examined < budget && !done() && !playersOnline.getAsBoolean()) {
+        int step(int budget, BooleanSupplier stop) throws IOException { return step(budget, Integer.MAX_VALUE, stop); }
+
+        /**
+         * Chunks that exist count against the budget; a position without a chunk costs one look-up only, so at most the given number of
+         * look-ups is made in a call.
+         */
+        int step(int budget, int lookups, BooleanSupplier stop) throws IOException {
+            int examined = 0, used = 0;
+            while (used < budget && examined < lookups && !done() && !stop.getAsBoolean()) {
                 long c = list[progress.index()];
                 int x = BiomeRepair.unpackX(c), z = BiomeRepair.unpackZ(c);
                 int rewritten = progress.rewritten(), unchanged = progress.unchanged(), missing = progress.missing();
                 switch (chunks.process(x, z)) {
-                    case REWRITTEN -> { log.rewritten(x, z); rewritten++; }
-                    case UNCHANGED -> unchanged++;
+                    case REWRITTEN -> { log.rewritten(x, z); rewritten++; used++; }
+                    case UNCHANGED -> { unchanged++; used++; }
                     case MISSING -> missing++;
                 }
                 progress = new Progress(progress.index() + 1, rewritten, unchanged, missing);
