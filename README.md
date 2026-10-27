@@ -55,6 +55,10 @@
 
 物品轉換紀錄寫在 `plugins/tokaWorlds/legacy-items.log`，可依此手動還原。
 
+## 生物群系自動修復
+
+轉換自舊版地圖的世界，生物群系常全是海洋。在 config 的 `biome-repair.worlds` 列出世界後，伺服器完全沒有玩家一段時間，就會依地表方塊（水、沙、雪、其他）逐區塊推測並寫回；有人上線立刻暫停，進度記錄在儲存庫，重啟後接續。只處理整個區塊都是同一個「海洋或未設定」的區塊。修復前的舊資料備份在 `plugins/tokaWorlds/biome-repair/<世界>/`，超過 `backup-days` 天自動刪除。`/world biome status｜pause｜resume｜restore <世界>` 查看與控制。
+
 ## 疑難排解
 
 - **為什麼 `confirm` 說尚未檢查？** 請先執行 `/world check`，待辦有變動後需重新檢查。

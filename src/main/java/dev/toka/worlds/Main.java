@@ -50,6 +50,7 @@ public final class Main extends PluginBase implements Listener {
     private JsonObject state;
     private boolean storageHealthy;
     private Messages messages;
+    private BiomeService biome;
     public Messages messages(){return messages;}
     private String t(String key,Object... arguments){return messages.text(key,arguments);}
     private final Map<String,Boolean> mounts=new LinkedHashMap<>();
@@ -85,6 +86,7 @@ public final class Main extends PluginBase implements Listener {
             if(recovery!=null) getLogger().error(t("log.recoveryPending",recovery));
             getServer().getPluginManager().registerEvents(this,this);getServer().getPluginManager().registerEvents(new LegacyItems(this),this);
             loadWorlds();
+            biome=new BiomeService(this,store,messages,line->getLogger().info(line),line->getLogger().warning(line));biome.start();
         } catch(Exception error) {getLogger().error(t("log.initFailed"),error);getServer().getPluginManager().disablePlugin(this);}
     }
     /** Runs inside onEnable so the worlds are ready before the server reports that it started; one failing world only warns. */
@@ -112,7 +114,7 @@ public final class Main extends PluginBase implements Listener {
         Command registered=(Command)getCommand("world");
         if(registered==null)return;
         registered.getCommandParameters().clear();
-        CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend","reload"});
+        CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend","reload","biome"});
         registered.addCommandParameters("action",new CommandParameter[]{action});
         CommandParameter world=names.length==0?CommandParameter.newType("world",CommandParamType.STRING):CommandParameter.newEnum("world",new cn.nukkit.command.data.CommandEnum("Worlds",names));
         registered.addCommandParameters("mount",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"mount"}),world});
@@ -380,7 +382,7 @@ public final class Main extends PluginBase implements Listener {
     }
     @EventHandler(priority=EventPriority.HIGHEST) public void playerCommand(PlayerCommandPreprocessEvent event){if(frozen.containsKey(event.getPlayer().getUniqueId())){event.setCancelled();event.getPlayer().sendMessage(t("msg.maintenance.busy"));}}
     @EventHandler public void join(PlayerJoinEvent event){getServer().getScheduler().scheduleDelayedTask(this,()->{if(event.getPlayer().isOnline()&&!busy)returnPlayer(event.getPlayer());},20);}
-    @Override public void onDisable(){if(scheduled!=null)scheduled.cancel();forms.clear();queries.clear();resends.values().forEach(cn.nukkit.scheduler.TaskHandler::cancel);resends.clear();releasePlayers();maintenance.clear();busy=false;if(store!=null)try{store.close();}catch(Exception error){getLogger().error(t("log.closeFailed"),error);}storageHealthy=false;}
+    @Override public void onDisable(){if(biome!=null)biome.stop();if(scheduled!=null)scheduled.cancel();forms.clear();queries.clear();resends.values().forEach(cn.nukkit.scheduler.TaskHandler::cancel);resends.clear();releasePlayers();maintenance.clear();busy=false;if(store!=null)try{store.close();}catch(Exception error){getLogger().error(t("log.closeFailed"),error);}storageHealthy=false;}
     @Override public boolean onCommand(CommandSender sender,Command command,String label,String[] args) {
         String sub=args.length==0?(sender instanceof Player?"menu":"help"):args[0].toLowerCase(Locale.ROOT);
         if(sub.equals("return")&&sender instanceof Player player){if(!busy)returnPlayer(player);return true;}
@@ -400,6 +402,16 @@ public final class Main extends PluginBase implements Listener {
                 case "resend" -> {
                     if(!(sender instanceof Player self))throw new IllegalArgumentException(t("err.playerOnly"));
                     startResend(self,args.length>=2?Math.max(1,Math.min(48,Integer.parseInt(args[1]))):16);
+                }
+                case "biome" -> {
+                    String action=args.length>1?args[1].toLowerCase(Locale.ROOT):"status";
+                    switch(action) {
+                        case "status" -> sender.sendMessage(biome.status());
+                        case "pause" -> {biome.pause(true);sender.sendMessage(t("msg.biome.paused"));}
+                        case "resume" -> {biome.pause(false);sender.sendMessage(t("msg.biome.resumed"));}
+                        case "restore" -> {if(args.length!=3)throw new IllegalArgumentException(t("err.usage.biome"));sender.sendMessage(t("msg.biome.restored",args[2],biome.restore(args[2])));}
+                        default -> throw new IllegalArgumentException(t("err.usage.biome"));
+                    }
                 }
                 case "reload" -> {reloadConfig();messages.language(getConfig().getString("language","zh-TW"));refreshCommands();sender.sendMessage(t("msg.reloaded"));}
                 default -> sender.sendMessage(t("cmd.worlds.usage"));
