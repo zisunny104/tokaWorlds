@@ -136,7 +136,7 @@ final class BiomeService {
         info.accept(m.text("log.biome.listing", world));
         Thread thread = new Thread(() -> {
             try {
-                long[] coords = Scanner.keys(provider);
+                long[] coords = Scanner.keys(provider, level.getDimension());
                 BiomeRepair.writeList(list(world), coords);
                 info.accept(m.text("log.biome.found", world, coords.length));
             } catch (Throwable error) {
@@ -150,7 +150,8 @@ final class BiomeService {
 
     /** Reads chunk keys (x, z little-endian, then tag ',' or 'v') through the provider's database object. */
     static final class Scanner {
-        static long[] keys(Object provider) throws Exception {
+        static long[] keys(Object provider) throws Exception { return keys(provider, 0); }
+        static long[] keys(Object provider, int dimension) throws Exception {
             var field = provider.getClass().getDeclaredField("db");
             field.setAccessible(true);
             Object db = field.get(provider);
@@ -164,19 +165,22 @@ final class BiomeService {
                 seek.invoke(iterator);
                 while ((boolean) has.invoke(iterator)) {
                     byte[] key = (byte[]) ((Map.Entry<?, ?>) next.invoke(iterator)).getKey();
-                    long coord = chunkOf(key);
+                    long coord = chunkOf(key, dimension);
                     if (coord != NONE) found.add(coord);
                 }
             } finally { close.invoke(iterator); }
             return found.stream().mapToLong(Long::longValue).toArray();
         }
         static final long NONE = Long.MIN_VALUE;
-        static long chunkOf(byte[] key) {
-            if (key.length != 9 || key[8] != ',' && key[8] != 'v') return NONE;
-            int x = (key[0] & 0xff) | (key[1] & 0xff) << 8 | (key[2] & 0xff) << 16 | (key[3] & 0xff) << 24;
-            int z = (key[4] & 0xff) | (key[5] & 0xff) << 8 | (key[6] & 0xff) << 16 | (key[7] & 0xff) << 24;
-            return BiomeRepair.pack(x, z);
+        static long chunkOf(byte[] key) { return chunkOf(key, 0); }
+        /** Overworld keys are x, z, tag (9 bytes); other dimensions add the dimension as a little-endian int before the tag (13 bytes). */
+        static long chunkOf(byte[] key, int dimension) {
+            int tag = dimension == 0 ? 8 : 12;
+            if (key.length != tag + 1 || key[tag] != ',' && key[tag] != 'v') return NONE;
+            if (dimension != 0 && le(key, 8) != dimension) return NONE;
+            return BiomeRepair.pack(le(key, 0), le(key, 4));
         }
+        private static int le(byte[] key, int at) { return (key[at] & 0xff) | (key[at + 1] & 0xff) << 8 | (key[at + 2] & 0xff) << 16 | (key[at + 3] & 0xff) << 24; }
         private static Method find(Class<?> type, String name) throws NoSuchMethodException {
             for (Method method : type.getMethods()) if (method.getName().equals(name) && method.getParameterCount() == 0) { method.setAccessible(true); return method; }
             throw new NoSuchMethodException(name);

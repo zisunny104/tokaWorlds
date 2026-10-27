@@ -59,6 +59,10 @@
 
 轉換自舊版地圖的世界，生物群系常全是海洋。在 config 的 `biome-repair.worlds` 列出世界後，伺服器完全沒有玩家一段時間，就會依地表方塊（水、沙、雪、其他）逐區塊推測並寫回；有人上線立刻暫停，進度記錄在儲存庫，重啟後接續。只處理整個區塊都是同一個「海洋或未設定」的區塊。修復前的舊資料備份在 `plugins/tokaWorlds/biome-repair/<世界>/`，超過 `backup-days` 天自動刪除。`/world biome status｜pause｜resume｜restore <世界>` 查看與控制。
 
+## 調色盤全面掃描
+
+核心讀取區塊時會整理膨脹的調色盤並標記該區塊已改變，但區塊要被存回才會寫進資料庫。在 config 的 `palette-repair.worlds` 列出世界後，伺服器完全沒有玩家一段時間，就會逐區塊載入、把有改變的區塊存回；有人上線立刻暫停，進度記錄在儲存庫，重啟後接續，每個世界完成後在後台回報改寫數與資料夾大小變化（leveldb 壓縮後才會變小）。**需要含「讀取時整理調色盤」的核心才有效**；舊核心不會標記改變，只會顯示改寫 0 個。被改寫的區塊座標記在 `plugins/tokaWorlds/palette-repair/<世界>/rewritten.log`，不備份區塊內容，整個世界資料夾的備份請自行決定。`/world palette status｜pause｜resume` 查看與控制。
+
 ## 疑難排解
 
 - **為什麼 `confirm` 說尚未檢查？** 請先執行 `/world check`，待辦有變動後需重新檢查。

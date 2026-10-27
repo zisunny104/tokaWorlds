@@ -76,3 +76,16 @@ biome-repair:
   biome-snow: 12
   biome-other: 1
 
+# 調色盤全面掃描：核心（需含「讀取區塊時整理調色盤」的版本）讀取區塊時會整理膨脹的調色盤並標記為已改變，
+# 這項功能在伺服器完全沒有玩家一段時間後，逐區塊載入設定的世界並把有改變的區塊存回資料庫。有人上線立刻暫停，進度記錄在儲存庫，重啟後接續。
+# 舊核心不會標記改變，掃描完會顯示改寫 0 個區塊，不會造成損害。
+# 只記錄被改寫的區塊座標（plugins/tokaWorlds/palette-repair/<世界>/rewritten.log），不備份區塊資料；整個世界資料夾的備份請自行決定。
+palette-repair:
+  # 是否啟用。
+  enabled: true
+  # 要掃描的世界（資料夾名稱），需已載入，例如 [chuklok, resource, nether, the_end, sunhoi, KASTW-RedTown]。
+  worlds: []
+  # 伺服器無人超過幾秒才開始。
+  idle-seconds: 120
+  # 每秒最多處理的區塊數，數字越小對伺服器影響越小。
+  chunks-per-second: 4
