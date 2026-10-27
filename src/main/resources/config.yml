@@ -83,9 +83,13 @@ biome-repair:
 palette-repair:
   # 是否啟用。
   enabled: true
-  # 要掃描的世界（資料夾名稱），需已載入，例如 [chuklok, resource, nether, the_end, sunhoi, KASTW-RedTown]。
-  worlds: []
+  # 要掃描的世界（資料夾名稱），依序進行，一次只做一個，尚未載入的世界會略過。
+  worlds: [chuklok, resource, nether, the_end, sunhoi, KASTW-RedTown]
   # 伺服器無人超過幾秒才開始。
-  idle-seconds: 120
-  # 每秒最多處理的區塊數，數字越小對伺服器影響越小。
-  chunks-per-second: 4
+  idle-seconds: 10
+  # 每秒最多處理的區塊數；實際數量會依每步耗時自動調節。
+  chunks-per-second: 32
+  # 每步（每秒一次）耗時超過幾毫秒就把數量減半，太快則慢慢加回。
+  max-step-ms: 30
+  # 伺服器 TPS 低於這個數字就暫停。
+  min-tps: 18

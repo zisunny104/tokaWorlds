@@ -29,6 +29,8 @@ final class PaletteService {
     private TaskHandler task;
     private int emptyTicks;
     private boolean paused;
+    private final Map<String, Long> elapsedMs = new HashMap<>();
+    private int budget;
 
     PaletteService(PluginBase plugin, DocumentStore store, Messages m, Consumer<String> info, Consumer<String> warn) {
         this.plugin = plugin; this.store = store; this.m = m; this.info = info; this.warn = warn;
@@ -54,12 +56,15 @@ final class PaletteService {
         if (!server.getOnlinePlayers().isEmpty()) { emptyTicks = 0; return; }
         if (paused) return;
         emptyTicks++;
-        if (emptyTicks < config("idle-seconds", 120)) return;
+        if (emptyTicks < config("idle-seconds", 10)) return;
+        if (server.getTicksPerSecond() < config("min-tps", 18)) return;
+        // worlds go in the configured order, one at a time; a world that is not loaded is skipped
         for (String world : worlds()) {
             if (finished.contains(world)) continue;
             Level level = server.getLevelByName(world);
             if (level == null) continue;
             try { work(world, level); } catch (Exception error) { finished.add(world); warn.accept(m.text("log.palette.error", world, String.valueOf(error))); }
+            return;
         }
     }
 
@@ -72,12 +77,21 @@ final class PaletteService {
             PaletteRepair.Progress progress = saved.map(o -> new PaletteRepair.Progress(o.get("index").getAsInt(), o.get("rewritten").getAsInt(), o.get("unchanged").getAsInt(), o.get("missing").getAsInt())).orElse(PaletteRepair.Progress.start());
             long before = saved.isPresent() && saved.get().has("sizeBefore") ? saved.get().get("sizeBefore").getAsLong() : size(level);
             sizeBefore.put(world, before);
+            elapsedMs.put(world, saved.isPresent() && saved.get().has("elapsedMs") ? saved.get().get("elapsedMs").getAsLong() : 0L);
             job = new PaletteRepair.Job(BiomeRepair.readList(list(world)), progress, new Access(level), (x, z) -> logRewritten(world, x, z), p -> save(world, p, null), 64);
             jobs.put(world, job);
             info.accept(m.text("log.palette.resumed", world, progress.index(), before));
         }
         if (job.done()) { finish(world, level, job); return; }
-        job.step(config("chunks-per-second", 4), () -> !plugin.getServer().getOnlinePlayers().isEmpty());
+        int max = Math.max(1, config("chunks-per-second", 32));
+        if (budget < 1 || budget > max) budget = max;
+        long start = System.nanoTime();
+        job.step(budget, () -> !plugin.getServer().getOnlinePlayers().isEmpty());
+        long took = (System.nanoTime() - start) / 1_000_000;
+        elapsedMs.merge(world, took, Long::sum);
+        // keep one step under the tick budget: halve when slow, creep back up when fast
+        if (took > config("max-step-ms", 30)) budget = Math.max(1, budget / 2);
+        else if (took < config("max-step-ms", 30) / 2) budget = Math.min(max, budget + 1);
         if (job.done()) finish(world, level, job);
     }
 
@@ -86,13 +100,14 @@ final class PaletteService {
         long before = sizeBefore.getOrDefault(world, 0L), after = size(level);
         PaletteRepair.Progress p = job.progress();
         save(world, p, after);
-        info.accept(m.text("log.palette.done", world, p.rewritten(), p.unchanged(), p.missing(), before, after));
+        info.accept(m.text("log.palette.done", world, p.rewritten(), p.unchanged(), p.missing(), before, after, elapsedMs.getOrDefault(world, 0L) / 1000));
     }
 
     private void save(String world, PaletteRepair.Progress p, Long after) throws IOException {
         JsonObject o = new JsonObject();
         o.addProperty("index", p.index()); o.addProperty("rewritten", p.rewritten()); o.addProperty("unchanged", p.unchanged()); o.addProperty("missing", p.missing());
         o.addProperty("sizeBefore", sizeBefore.getOrDefault(world, 0L));
+        o.addProperty("elapsedMs", elapsedMs.getOrDefault(world, 0L));
         if (after != null) { o.addProperty("sizeAfter", after); o.addProperty("done", true); }
         store.save(key(world), o);
     }
