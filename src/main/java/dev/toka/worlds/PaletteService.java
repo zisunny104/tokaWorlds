@@ -152,7 +152,10 @@ final class PaletteService {
                 info.accept(m.text("log.palette.found", world, coords.length));
             } catch (Throwable error) {
                 finished.add(world);
-                warn.accept(m.text("log.palette.scanFailed", world, String.valueOf(error)));
+                Throwable cause = error instanceof java.lang.reflect.InvocationTargetException && error.getCause() != null ? error.getCause() : error;
+                StringBuilder where = new StringBuilder(String.valueOf(cause));
+                for (StackTraceElement frame : Arrays.copyOf(cause.getStackTrace(), Math.min(4, cause.getStackTrace().length))) where.append(" at ").append(frame);
+                warn.accept(m.text("log.palette.scanFailed", world, where.toString()));
             } finally { scanning.remove(world); }
         }, "toka-palette-scan");
         thread.setDaemon(true);
