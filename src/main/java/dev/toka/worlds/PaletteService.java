@@ -44,7 +44,7 @@ final class PaletteService {
     private List<String> worlds() { return plugin.getConfig().getStringList("palette-repair.worlds"); }
 
     void start() {
-        if (!plugin.getConfig().getBoolean("palette-repair.enabled", true)) return;
+        if (!plugin.getConfig().getBoolean("palette-repair.enabled", false)) return;
         task = plugin.getServer().getScheduler().scheduleRepeatingTask(plugin, this::tick, 20);
     }
     void stop() { if (task != null) task.cancel(); task = null; }

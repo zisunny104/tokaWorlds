@@ -61,7 +61,7 @@ slow-operation-ms: 200
 # 只處理整個區塊都是同一個「海洋或未設定」的區塊，已有多種生物群系的區塊不會動。
 biome-repair:
   # 是否啟用自動修復。
-  enabled: true
+  enabled: false
   # 要修復的世界（資料夾名稱），需已載入。
   worlds: []
   # 伺服器無人超過幾秒才開始。
@@ -81,8 +81,8 @@ biome-repair:
 # 舊核心不會標記改變，掃描完會顯示改寫 0 個區塊，不會造成損害。
 # 只記錄被改寫的區塊座標（plugins/tokaWorlds/palette-repair/<世界>/rewritten.log），不備份區塊資料；整個世界資料夾的備份請自行決定。
 palette-repair:
-  # 是否啟用。
-  enabled: true
+  # 是否啟用。預設關閉：掃描會直接讀寫區塊，正式使用前必須先在單一區塊或世界副本上驗證方塊實體（告示牌、箱子等）都有保留。
+  enabled: false
   # 要掃描的世界（資料夾名稱），依序進行，一次只做一個，尚未載入的世界會略過。
   worlds: [chuklok, resource, nether, the_end, sunhoi, KASTW-RedTown]
   # 伺服器無人超過幾秒才開始。

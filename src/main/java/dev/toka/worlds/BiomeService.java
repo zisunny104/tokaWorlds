@@ -41,7 +41,7 @@ final class BiomeService {
     private int config(String name, int fallback) { return plugin.getConfig().getInt("biome-repair." + name, fallback); }
 
     void start() {
-        if (!plugin.getConfig().getBoolean("biome-repair.enabled", true)) return;
+        if (!plugin.getConfig().getBoolean("biome-repair.enabled", false)) return;
         task = plugin.getServer().getScheduler().scheduleRepeatingTask(plugin, this::tick, 20);
     }
     void stop() { if (task != null) task.cancel(); task = null; }
