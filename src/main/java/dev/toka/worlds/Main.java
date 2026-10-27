@@ -114,7 +114,7 @@ public final class Main extends PluginBase implements Listener {
         Command registered=(Command)getCommand("world");
         if(registered==null)return;
         registered.getCommandParameters().clear();
-        CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend","reload","biome"});
+        CommandParameter action=CommandParameter.newEnum("action",new String[]{"help","return","cancel","list","mount","unmount","rename","plan","clear","check","confirm","resend","reload","biome","block"});
         registered.addCommandParameters("action",new CommandParameter[]{action});
         CommandParameter world=names.length==0?CommandParameter.newType("world",CommandParamType.STRING):CommandParameter.newEnum("world",new cn.nukkit.command.data.CommandEnum("Worlds",names));
         registered.addCommandParameters("mount",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"mount"}),world});
@@ -122,9 +122,30 @@ public final class Main extends PluginBase implements Listener {
         registered.addCommandParameters("rename",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"rename"}),world,CommandParameter.newType("new_name",CommandParamType.STRING),CommandParameter.newEnum("link_mode",true,new cn.nukkit.command.data.CommandEnum("LinkMode",new String[]{"--link","--no-link"}))});
         registered.addCommandParameters("confirm",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"confirm"}),CommandParameter.newType("delay_seconds",true,CommandParamType.INT)});
         registered.addCommandParameters("resend",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"resend"}),CommandParameter.newType("radius",true,CommandParamType.INT)});
+        registered.addCommandParameters("block",new CommandParameter[]{CommandParameter.newEnum("action",new String[]{"block"}),world,CommandParameter.newType("x",CommandParamType.INT),CommandParameter.newType("y",CommandParamType.INT),CommandParameter.newType("z",CommandParamType.INT),CommandParameter.newType("block",CommandParamType.STRING)});
         for(String word:List.of("plan","check","clear","cancel","list","return","reload"))
             registered.addCommandParameters(word,new CommandParameter[]{CommandParameter.newEnum("action",new cn.nukkit.command.data.CommandEnum("Worlds"+Character.toUpperCase(word.charAt(0))+word.substring(1),word))});
         registered.addCommandParameters("help",new CommandParameter[]{CommandParameter.newEnum("action",new cn.nukkit.command.data.CommandEnum("WorldsHelp","help")),CommandParameter.newType("page",true,CommandParamType.INT)});
+    }
+
+    /**
+     * /world block <世界> <x> <y> <z> <編號[:資料]>：把一格方塊換掉，換之前把原來的記進 block-backup.log，要還原照那一行再下一次指令。
+     * 方塊在伺服器執行中用核心的方法換，不碰資料庫檔案；沒有玩家在附近也會載入該區塊。
+     */
+    private void setBlock(CommandSender sender,String[] args) throws java.io.IOException {
+        if(args.length!=6)throw new IllegalArgumentException(t("err.usage.block"));
+        Level level=getServer().getLevelByName(args[1]);
+        if(level==null)throw new IllegalArgumentException(t("err.biome.notLoaded",args[1]));
+        int x=Integer.parseInt(args[2]),y=Integer.parseInt(args[3]),z=Integer.parseInt(args[4]);
+        String[] spec=args[5].split(":");
+        int id=Integer.parseInt(spec[0]),meta=spec.length>1?Integer.parseInt(spec[1]):0;
+        if(level.getChunk(x>>4,z>>4,true)==null)throw new IllegalArgumentException(t("err.block.noChunk",x>>4,z>>4));
+        cn.nukkit.block.Block old=level.getBlock(x,y,z);
+        String before=old.getId()+":"+old.getDamage();
+        Files.createDirectories(getDataFolder().toPath());
+        Files.writeString(getDataFolder().toPath().resolve("block-backup.log"),java.time.Instant.now()+" "+sender.getName()+" "+level.getFolderName()+" "+x+" "+y+" "+z+" "+before+" -> "+id+":"+meta+"\n",java.nio.file.StandardOpenOption.CREATE,java.nio.file.StandardOpenOption.APPEND);
+        level.setBlock(new cn.nukkit.math.Vector3(x,y,z),cn.nukkit.block.Block.get(id,meta),true,true);
+        sender.sendMessage(t("msg.block.done",level.getFolderName(),x,y,z,before,id+":"+meta));
     }
     private String owner(CommandSender sender){return sender instanceof Player p?p.getUniqueId().toString():"console";}
     private List<Operation> plan(CommandSender sender){return plans.computeIfAbsent(owner(sender),key->new ArrayList<>());}
@@ -413,6 +434,7 @@ public final class Main extends PluginBase implements Listener {
                         default -> throw new IllegalArgumentException(t("err.usage.biome"));
                     }
                 }
+                case "block" -> setBlock(sender,args);
                 case "reload" -> {reloadConfig();messages.language(getConfig().getString("language","zh-TW"));refreshCommands();sender.sendMessage(t("msg.reloaded"));}
                 default -> sender.sendMessage(t("cmd.worlds.usage"));
             }
