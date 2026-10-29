@@ -37,7 +37,7 @@
 | `tokaWorlds.use` | 使用 `/world return` | 所有人 |
 | `tokaWorlds.admin` | 世界管理 | OP |
 
-建議流程：`rename A B` → `plan` → `check` → `confirm 30`。每位管理員有各自的待辦；伺服器預設世界不能在線停用或更名；執行中途失敗會停止，已完成的項目保留；重新啟動後待辦需重新檢查與確認。
+建議流程：`rename A B` → `plan` → `check` → `confirm 30`。每位管理員有各自的待辦；伺服器預設世界不能線上停用或更名；執行中途失敗會停止，已完成的項目保留；重新啟動後待辦需重新檢查與確認。
 
 ## 設定 config.yml
 

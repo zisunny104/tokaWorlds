@@ -93,7 +93,7 @@ palette-repair:
   max-step-ms: 30
   # 伺服器 TPS 低於這個數字就暫停。
   min-tps: 18
-  # 有玩家在線時是否繼續（速度降為 chunks-per-second-online）；伺服器 TPS 與每步耗時正常才會繼續，玩家正在用的區塊本來就已整理過。
+  # 有玩家在線上時是否繼續（速度降為 chunks-per-second-online）；伺服器 TPS 與每步耗時正常才會繼續，玩家正在用的區塊本來就已整理過。
   run-with-players: true
   chunks-per-second-online: 8
   # 掃描範圍：以原點為中心往四方各幾個區塊（160 約等於 2560 格）。沒有區塊的位置只查一次，不佔每秒區塊額度。
